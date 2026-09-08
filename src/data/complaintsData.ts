@@ -1,0 +1,71 @@
+import { ConsumerComplaint } from '../types';
+
+export const INITIAL_COMPLAINTS: ConsumerComplaint[] = [
+  {
+    id: 'GRV-LKO-2026-042',
+    timestamp: '2026-09-08 12:20',
+    complainantName: 'Priya Srivastava',
+    complainantContact: '+91 94150 28314',
+    productName: 'Sparkle Glow Herbal Rejuvenating Shampoo',
+    brand: 'Sparkle Cosmetics',
+    category: 'Personal Care & Cosmetics',
+    storeOrPlatform: 'Bazaar Mart, Hazratganj, Lucknow',
+    location: 'Hazratganj Main Market, Lucknow, UP',
+    violationType: 'Missing Tax Wording on MRP & No Consumer Email',
+    description: 'The retailer charged ₹240 whereas the packaging printed "MRP: 220/-" without inclusive of all taxes wording. The packaging also lacks any consumer grievance email.',
+    status: 'Notice Issued',
+    priority: 'High',
+    assignedOfficer: 'GASLIGHTER',
+    actionNotes: 'Section 36 notice served to distributor at Industrial Estate, Lucknow. Packaging seized for lab inspection.'
+  },
+  {
+    id: 'GRV-LKO-2026-039',
+    timestamp: '2026-09-07 15:45',
+    complainantName: 'Alok Tiwari',
+    complainantContact: '+91 98390 19283',
+    productName: 'Golden Grain Premium Basmati Rice 5kg',
+    brand: 'Golden Agro',
+    category: 'Food & Snacks',
+    storeOrPlatform: 'Kirana Mandi, Aminabad',
+    location: 'Aminabad Market, Lucknow, UP',
+    violationType: 'Short Net Quantity / Weight Discrepancy',
+    description: 'Weighed unopened sealed bag on calibrated digital scale; net weight showed 4.71 kg instead of declared 5.0 kg.',
+    status: 'Under Inspection',
+    priority: 'High',
+    assignedOfficer: 'GASLIGHTER',
+    actionNotes: 'Assigned to field team for verification on working standard weighing instrument.'
+  },
+  {
+    id: 'GRV-LKO-2026-035',
+    timestamp: '2026-09-06 10:15',
+    complainantName: 'Mohd. Zeeshan',
+    complainantContact: '+91 91290 88219',
+    productName: 'QuickClean Surface Disinfectant Liquid 500ml',
+    brand: 'QuickClean India',
+    category: 'Household & Cleaning',
+    storeOrPlatform: 'Modern Superstore, Alambagh',
+    location: 'Alambagh, Lucknow, UP',
+    violationType: 'Illegible Net Volume Font & Missing USP',
+    description: 'Numeral height for 500ml is less than 1.5mm, violating Rule 7 prescribed table. No unit sale price indicated on display panel.',
+    status: 'Pending Investigation',
+    priority: 'Medium',
+    assignedOfficer: 'GASLIGHTER'
+  },
+  {
+    id: 'GRV-LKO-2026-028',
+    timestamp: '2026-09-04 18:30',
+    complainantName: 'Sunita Verma',
+    complainantContact: '+91 97930 44102',
+    productName: 'NutriSnack Roasted & Salted Almond Kernels',
+    brand: 'NutriSnack Foods',
+    category: 'Food & Snacks',
+    storeOrPlatform: 'Concessionaire Kiosk, Terminal 3',
+    location: 'CCS International Airport, Lucknow',
+    violationType: 'Overcharging / Price Sticker Pasting Over MRP',
+    description: 'Vendor pasted a secondary price sticker of ₹450 over the original manufacturer printed MRP of ₹385.00.',
+    status: 'Resolved / Compounded',
+    priority: 'High',
+    assignedOfficer: 'GASLIGHTER',
+    actionNotes: 'Compounded under Section 49; compounding penalty of ₹15,000 deposited into State exchequer.'
+  }
+];
