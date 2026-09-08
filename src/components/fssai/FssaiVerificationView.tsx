@@ -1,24 +1,27 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { 
   ShieldCheck, 
   Search, 
   ExternalLink, 
   Building2, 
-  Calendar, 
-  MapPin, 
   CheckCircle2, 
   AlertTriangle, 
   FileCheck2, 
   Layers, 
   Sparkles,
   ArrowRight,
-  Info,
   Award,
-  Hash,
   Copy,
-  Check
+  Check,
+  Upload,
+  Camera,
+  Loader2,
+  Image as ImageIcon,
+  ScanLine,
+  RefreshCw
 } from 'lucide-react';
 import { fssaiVerificationService, FssaiDecodedDetails } from '../../services/fssaiVerificationService';
+import { liveOcrService, OcrProgressUpdate } from '../../services/liveOcrService';
 
 interface FssaiVerificationViewProps {
   onStartInspectionWithFssai?: (fssaiNumber: string, brand?: string) => void;
@@ -32,6 +35,14 @@ export const FssaiVerificationView: React.FC<FssaiVerificationViewProps> = ({
     fssaiVerificationService.decodeFssaiNumber('10014011000263')
   );
   const [copied, setCopied] = useState(false);
+
+  // Live Optical OCR States
+  const [isOcrProcessing, setIsOcrProcessing] = useState(false);
+  const [ocrProgress, setOcrProgress] = useState(0);
+  const [ocrStatusText, setOcrStatusText] = useState('');
+  const [ocrUploadedImage, setOcrUploadedImage] = useState<string | null>(null);
+  const [ocrMessage, setOcrMessage] = useState<{ type: 'success' | 'warning' | 'info'; text: string } | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleSearch = (numToSearch: string) => {
     const decoded = fssaiVerificationService.decodeFssaiNumber(numToSearch);
@@ -50,6 +61,65 @@ export const FssaiVerificationView: React.FC<FssaiVerificationViewProps> = ({
     navigator.clipboard.writeText(result.rawNumber);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const processImageOcr = async (file: File) => {
+    setIsOcrProcessing(true);
+    setOcrProgress(0);
+    setOcrStatusText('Loading Tesseract Optical Engine...');
+    setOcrMessage(null);
+
+    // Read and display thumbnail
+    const reader = new FileReader();
+    reader.onload = async () => {
+      if (reader.result) {
+        setOcrUploadedImage(reader.result as string);
+      }
+    };
+    reader.readAsDataURL(file);
+
+    try {
+      const extracted = await liveOcrService.recognizeImage(file, (update: OcrProgressUpdate) => {
+        setOcrProgress(update.progress);
+        setOcrStatusText(`${update.status} (${update.progress}%)`);
+      });
+
+      if (extracted.detectedFssaiNumber) {
+        setInputNumber(extracted.detectedFssaiNumber);
+        handleSearch(extracted.detectedFssaiNumber);
+        setOcrMessage({
+          type: 'success',
+          text: `Optical OCR successfully extracted 14-digit FSSAI License: ${extracted.detectedFssaiNumber} (${extracted.confidence}% confidence)`
+        });
+      } else {
+        setOcrMessage({
+          type: 'warning',
+          text: `OCR scanned the image (${extracted.confidence}% confidence), but could not find a distinct 14-digit FSSAI number. Please verify or enter it manually below.`
+        });
+      }
+    } catch (err) {
+      setOcrMessage({
+        type: 'warning',
+        text: 'Optical character recognition encountered an error processing this image format. Please enter the number manually.'
+      });
+    } finally {
+      setIsOcrProcessing(false);
+    }
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      processImageOcr(file);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    const file = e.dataTransfer.files?.[0];
+    if (file) {
+      processImageOcr(file);
+    }
   };
 
   const quickSamples = [
@@ -78,12 +148,16 @@ export const FssaiVerificationView: React.FC<FssaiVerificationViewProps> = ({
               <span className="bg-blue-500/20 text-blue-300 text-xs font-semibold px-2 py-0.5 rounded-full">
                 14-Digit Format
               </span>
+              <span className="bg-emerald-500/20 text-emerald-300 text-xs font-semibold px-2 py-0.5 rounded-full flex items-center gap-1">
+                <ScanLine className="w-3 h-3" />
+                Live OCR Enabled
+              </span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
               FSSAI License & Registration Verifier
             </h1>
             <p className="text-slate-300 text-sm mt-1.5 max-w-2xl leading-relaxed">
-              Verify statutory compliance, decode issuing state, registration year, jurisdiction, and open the official FoSCoS Government Portal directly.
+              Verify statutory compliance, decode issuing state, registration year, jurisdiction, or upload a photo to extract the FSSAI number with live OCR.
             </p>
           </div>
 
@@ -99,6 +173,100 @@ export const FssaiVerificationView: React.FC<FssaiVerificationViewProps> = ({
             </a>
           </div>
         </div>
+      </div>
+
+      {/* Live Optical OCR Upload Strip */}
+      <div 
+        onDragOver={(e) => e.preventDefault()}
+        onDrop={handleDrop}
+        className="bg-white rounded-2xl p-5 border-2 border-dashed border-blue-200 hover:border-blue-400 transition-all shadow-2xs"
+      >
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center shrink-0 border border-orange-100">
+              {isOcrProcessing ? (
+                <Loader2 className="w-6 h-6 animate-spin text-orange-600" />
+              ) : (
+                <Camera className="w-6 h-6 text-orange-600" />
+              )}
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="text-sm font-bold text-slate-900">
+                  Upload Photo of Food Packet (Live Optical OCR)
+                </h3>
+                <span className="text-[10px] bg-blue-100 text-blue-700 px-2 py-0.2 rounded-full font-bold">
+                  Tesseract.js WASM
+                </span>
+              </div>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Drop an image of the packet or back label. The OCR engine reads the pixels and detects the 14-digit FSSAI sequence automatically.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <input 
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileSelect}
+              accept="image/*"
+              className="hidden"
+            />
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isOcrProcessing}
+              className="w-full sm:w-auto bg-slate-900 hover:bg-blue-600 disabled:bg-slate-400 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow-xs transition-all flex items-center justify-center gap-2 cursor-pointer"
+            >
+              {isOcrProcessing ? (
+                <>
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  <span>Scanning Image...</span>
+                </>
+              ) : (
+                <>
+                  <Upload className="w-3.5 h-3.5" />
+                  <span>Select Packet Image</span>
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+
+        {/* Live OCR Progress Bar */}
+        {isOcrProcessing && (
+          <div className="mt-4 pt-3 border-t border-slate-100 space-y-1.5">
+            <div className="flex items-center justify-between text-xs text-slate-600 font-semibold">
+              <span className="flex items-center gap-1.5">
+                <ScanLine className="w-3.5 h-3.5 text-blue-600 animate-pulse" />
+                <span>{ocrStatusText}</span>
+              </span>
+              <span>{ocrProgress}%</span>
+            </div>
+            <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+              <div 
+                className="h-full bg-blue-600 rounded-full transition-all duration-300"
+                style={{ width: `${Math.max(5, ocrProgress)}%` }}
+              ></div>
+            </div>
+          </div>
+        )}
+
+        {/* OCR Result Notification */}
+        {ocrMessage && !isOcrProcessing && (
+          <div className={`mt-4 p-3 rounded-xl text-xs flex items-center gap-2 ${
+            ocrMessage.type === 'success' 
+              ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' 
+              : 'bg-amber-50 text-amber-800 border border-amber-200'
+          }`}>
+            {ocrMessage.type === 'success' ? (
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+            ) : (
+              <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+            )}
+            <span className="font-medium">{ocrMessage.text}</span>
+          </div>
+        )}
       </div>
 
       {/* Input Search Box */}
@@ -246,7 +414,6 @@ export const FssaiVerificationView: React.FC<FssaiVerificationViewProps> = ({
                   </h3>
                   {result.businessAddress && (
                     <p className="text-xs text-slate-600 mt-1 flex items-start gap-1">
-                      <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0 mt-0.5" />
                       <span>{result.businessAddress}</span>
                     </p>
                   )}
