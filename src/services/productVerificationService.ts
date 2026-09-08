@@ -111,97 +111,17 @@ const DEMO_CATALOG: CatalogItem[] = [
 ];
 
 export class ProductVerificationService implements IProductVerificationService {
-  private isConfigured: boolean = true;
-  private userKey: string = '';
+  private isConfigured: boolean = false;
 
   constructor() {
-    this.userKey = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_UPCITEMDB_USER_KEY) || '';
+    this.isConfigured = false;
   }
 
   public checkApiStatus() {
     return {
-      isConfigured: true,
-      providerName: this.userKey 
-        ? 'UPCitemdb Commercial API (Registered Key)' 
-        : 'UPCitemdb REST API (Live Trial)'
+      isConfigured: this.isConfigured,
+      providerName: 'National Product Index / Authority Database'
     };
-  }
-
-  /**
-   * Queries the live UPCitemdb service via barcode or text keyword search
-   */
-  private async queryUpcitemdb(barcode?: string, textQuery?: string): Promise<CatalogItem | null> {
-    const headers: Record<string, string> = {
-      'Accept': 'application/json'
-    };
-
-    if (this.userKey) {
-      headers['user_key'] = this.userKey;
-      headers['key_type'] = '3scale';
-    }
-
-    const cleanBarcode = (barcode || '').replace(/[^0-9]/g, '');
-
-    // 1. Try Barcode Lookup if valid 8, 12, 13, or 14 digits
-    if (cleanBarcode.length >= 8 && cleanBarcode.length <= 14) {
-      try {
-        const basePath = this.userKey ? '/api/upcitemdb/prod/v1/lookup' : '/api/upcitemdb/prod/trial/lookup';
-        const url = `${basePath}?upc=${encodeURIComponent(cleanBarcode)}`;
-        const res = await fetch(url, { headers, signal: AbortSignal.timeout(4000) });
-        if (res.ok) {
-          const data = await res.json();
-          if (data && data.items && data.items.length > 0) {
-            const it = data.items[0];
-            const priceVal = it.offers?.[0]?.price || it.lowest_recorded_price || it.highest_recorded_price;
-            return {
-              id: `upc-${cleanBarcode}`,
-              brand: it.brand || 'Verified Brand',
-              productName: it.title || 'Verified Commodity',
-              manufacturer: it.brand ? `${it.brand} Registered Entities` : 'Registered Importer / Manufacturer',
-              barcode: it.ean || it.upc || cleanBarcode,
-              netQty: it.size || it.weight || 'Declared Packaging Size',
-              mrp: priceVal ? String(priceVal) : 'Market Standard',
-              sourceName: 'UPCitemdb Global Product Registry (Live API)',
-              sourceUrl: `https://www.upcitemdb.com/upc/${it.ean || it.upc || cleanBarcode}`
-            };
-          }
-        }
-      } catch {
-        // Fall through to text search if lookup fails or network error
-      }
-    }
-
-    // 2. Try Text Keyword Search if barcode failed or is absent
-    const cleanQuery = (textQuery || '').trim();
-    if (cleanQuery.length >= 3 && !cleanQuery.toLowerCase().includes('unknown')) {
-      try {
-        const basePath = this.userKey ? '/api/upcitemdb/prod/v1/search' : '/api/upcitemdb/prod/trial/search';
-        const url = `${basePath}?s=${encodeURIComponent(cleanQuery)}&type=product`;
-        const res = await fetch(url, { headers, signal: AbortSignal.timeout(4000) });
-        if (res.ok) {
-          const data = await res.json();
-          if (data && data.items && data.items.length > 0) {
-            const it = data.items[0];
-            const priceVal = it.offers?.[0]?.price || it.lowest_recorded_price || it.highest_recorded_price;
-            return {
-              id: `upc-search-${it.ean || it.upc || 'item'}`,
-              brand: it.brand || 'Verified Brand',
-              productName: it.title || cleanQuery,
-              manufacturer: it.brand ? `${it.brand} Registered Entities` : 'Registered Importer / Manufacturer',
-              barcode: it.ean || it.upc || '',
-              netQty: it.size || it.weight || 'Standard Pack',
-              mrp: priceVal ? String(priceVal) : 'Market Standard',
-              sourceName: 'UPCitemdb Global Product Search (Live API)',
-              sourceUrl: `https://www.upcitemdb.com/upc/${it.ean || it.upc || cleanBarcode}`
-            };
-          }
-        }
-      } catch {
-        // Fall through to demo catalog fallback
-      }
-    }
-
-    return null;
   }
 
   public async verifyProduct(query: ProductQuery): Promise<OnlineVerificationResult> {
@@ -223,14 +143,14 @@ export class ProductVerificationService implements IProductVerificationService {
 
     if (!hasSearchSignals) {
       return {
-        isConfiguredApi: true,
-        sourceName: 'UPCitemdb & GS1 National Database',
+        isConfiguredApi: false,
+        sourceName: 'National Product Index / GS1 Database',
         status: 'Not found',
         verificationStatus: 'Not found',
         matchConfidence: 0,
         conflicts: [],
-        isDemoMock: false,
-        isMockData: false,
+        isDemoMock: true,
+        isMockData: true,
         message: 'Could not confidently identify this product. Please verify the details manually.',
         explanation: 'Could not confidently identify this product. Multiple matching signals (Brand, Barcode, Manufacturer) were insufficient or absent. Please verify the details manually.',
         searchTimestamp: timestamp,
@@ -238,61 +158,53 @@ export class ProductVerificationService implements IProductVerificationService {
       };
     }
 
-    // Step 1: Attempt Live Query to UPCitemdb REST API
-    let isLiveResult = false;
+    const normalizedBrand = effectiveBrand.toLowerCase();
+    const normalizedName = effectiveName.toLowerCase();
+    const barcode = effectiveBarcode;
+
+    let bestItem: CatalogItem | null = null;
     let highestScore = 0;
-    const combinedQuery = `${effectiveBrand} ${effectiveName}`.trim();
-    let bestItem: CatalogItem | null = await this.queryUpcitemdb(effectiveBarcode, combinedQuery);
 
-    if (bestItem) {
-      isLiveResult = true;
-      highestScore = 95;
-    } else {
-      // Step 2: Fallback to Authoritative Reference Database if offline / trial exhausted
-      const normalizedBrand = effectiveBrand.toLowerCase();
-      const normalizedName = effectiveName.toLowerCase();
-      const barcode = effectiveBarcode;
-      for (const item of DEMO_CATALOG) {
-        let score = 0;
-        const itemBrand = item.brand.toLowerCase();
-        const itemName = item.productName.toLowerCase();
+    for (const item of DEMO_CATALOG) {
+      let score = 0;
+      const itemBrand = item.brand.toLowerCase();
+      const itemName = item.productName.toLowerCase();
 
-        if (barcode && item.barcode === barcode) score += 50;
-        if (normalizedBrand && (itemBrand.includes(normalizedBrand) || normalizedBrand.includes(itemBrand.split(' ')[0]))) score += 25;
-        if (normalizedName) {
-          const queryTokens = normalizedName.split(/\s+/).filter(t => t.length > 2);
-          let tokenMatches = 0;
-          for (const token of queryTokens) {
-            if (itemName.includes(token)) tokenMatches++;
-          }
-          if (queryTokens.length > 0) {
-            score += Math.min(25, Math.round((tokenMatches / queryTokens.length) * 25));
-          }
+      if (barcode && item.barcode === barcode) score += 50;
+      if (normalizedBrand && (itemBrand.includes(normalizedBrand) || normalizedBrand.includes(itemBrand.split(' ')[0]))) score += 25;
+      if (normalizedName) {
+        const queryTokens = normalizedName.split(/\s+/).filter(t => t.length > 2);
+        let tokenMatches = 0;
+        for (const token of queryTokens) {
+          if (itemName.includes(token)) tokenMatches++;
         }
-
-        if (score > highestScore) {
-          highestScore = score;
-          bestItem = item;
+        if (queryTokens.length > 0) {
+          score += Math.min(25, Math.round((tokenMatches / queryTokens.length) * 25));
         }
       }
 
-      // If still below threshold, return honest Not Found
-      if (!bestItem || highestScore < 30) {
-        return {
-          isConfiguredApi: true,
-          sourceName: 'UPCitemdb & Brand Master Index',
-          status: 'Not found',
-          verificationStatus: 'Not found',
-          matchConfidence: highestScore,
-          conflicts: [],
-          isDemoMock: false,
-          isMockData: false,
-          message: 'Could not confidently identify this product. Please verify the details manually.',
-          explanation: 'Could not confidently identify this product. Multiple matching signals (Brand, Barcode, Manufacturer) were insufficient or absent. Please verify the details manually.',
-          searchTimestamp: timestamp,
-          matchedAt: timestamp
-        };
+      if (score > highestScore) {
+        highestScore = score;
+        bestItem = item;
       }
+    }
+
+    // If below threshold, return honest Not Found
+    if (!bestItem || highestScore < 30) {
+      return {
+        isConfiguredApi: false,
+        sourceName: 'National Product Index / GS1 Database',
+        status: 'Not found',
+        verificationStatus: 'Not found',
+        matchConfidence: highestScore,
+        conflicts: [],
+        isDemoMock: true,
+        isMockData: true,
+        message: 'Could not confidently identify this product. Please verify the details manually.',
+        explanation: 'Could not confidently identify this product. Multiple matching signals (Brand, Barcode, Manufacturer) were insufficient or absent. Please verify the details manually.',
+        searchTimestamp: timestamp,
+        matchedAt: timestamp
+      };
     }
 
     // Multi-signal conflict detection: compare label OCR values against online listing
@@ -357,12 +269,12 @@ export class ProductVerificationService implements IProductVerificationService {
       matchedNetQty: bestItem.netQty,
       matchedNetQuantity: bestItem.netQty,
       matchedBarcode: bestItem.barcode,
-      matchConfidence: isLiveResult ? 95 : Math.min(99, highestScore + 20),
+      matchConfidence: Math.min(99, highestScore + 20),
       status,
       verificationStatus: status,
       conflicts,
-      isDemoMock: !isLiveResult,
-      isMockData: !isLiveResult,
+      isDemoMock: true,
+      isMockData: true,
       searchTimestamp: timestamp,
       matchedAt: timestamp,
       message,
