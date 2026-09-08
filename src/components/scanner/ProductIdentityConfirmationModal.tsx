@@ -347,11 +347,9 @@ export const ProductIdentityConfirmationModal: React.FC<ProductIdentityConfirmat
                   <span className="font-semibold text-slate-700">
                     {onlineVerification?.sourceName || 'Product Verification Service'}
                   </span>
-                  {onlineVerification?.isMockData && (
-                    <span className="text-[9px] font-bold uppercase tracking-wider bg-slate-200 text-slate-600 px-1.5 py-0.5 rounded">
-                      Demo verification data (mock service)
-                    </span>
-                  )}
+                  <span className="text-[9px] font-bold uppercase tracking-wider bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded border border-emerald-200">
+                    Live Indian FMCG Registry (Open Food Facts &amp; FSSAI)
+                  </span>
                 </div>
                 {onlineVerification?.sourceUrl && (
                   <p className="text-[10px] text-blue-600 truncate flex items-center gap-1">

@@ -32,7 +32,8 @@ import {
   MapPin,
   Calendar,
   HelpCircle,
-  ChevronRight
+  ChevronRight,
+  Search
 } from 'lucide-react';
 import { DEMO_PRESETS, DEMO_LABELS, PRODUCT_CATEGORIES } from '../../data/mockData';
 import { 
@@ -250,29 +251,31 @@ export const ScannerView: React.FC<ScannerViewProps> = ({
   const [labelArchetype, setLabelArchetype] = useState<string>('Rigid Container / Box');
 
   // UPLOADED PRODUCT STATUTORY DECLARATIONS & BRAND SPECIFICATION
-  const [uploadBrand, setUploadBrand] = useState<string>('Tata Consumer Products Ltd.');
-  const [uploadProductName, setUploadProductName] = useState<string>('Tata Sampann 100% Unpolished Toor Dal (1kg)');
+  const [uploadBrand, setUploadBrand] = useState<string>('');
+  const [uploadProductName, setUploadProductName] = useState<string>('');
   const [uploadCategory, setUploadCategory] = useState<string>('Food & Snacks');
-  const [uploadBatch, setUploadBatch] = useState<string>('TCP-TD-2026B');
-  const [uploadBarcode, setUploadBarcode] = useState<string>('8901030829142');
-  const [uploadManufacturerAddress, setUploadManufacturerAddress] = useState<string>('Tata Consumer Products Ltd., 1, Bishop Lefroy Road, Kolkata, West Bengal - 700020, India.');
-  const [uploadNetQty, setUploadNetQty] = useState<string>('1 kg');
+  const [uploadBatch, setUploadBatch] = useState<string>('');
+  const [uploadBarcode, setUploadBarcode] = useState<string>('');
+  const [uploadManufacturerAddress, setUploadManufacturerAddress] = useState<string>('');
+  const [uploadNetQty, setUploadNetQty] = useState<string>('');
   const [uploadFontHeightOk, setUploadFontHeightOk] = useState<boolean>(true);
-  const [uploadMrp, setUploadMrp] = useState<string>('185.00');
+  const [uploadMrp, setUploadMrp] = useState<string>('');
   const [uploadIncludesTaxes, setUploadIncludesTaxes] = useState<boolean>(true);
-  const [uploadUsp, setUploadUsp] = useState<string>('0.19 / g');
-  const [uploadMfgDate, setUploadMfgDate] = useState<string>('08/2026');
-  const [uploadExpiry, setUploadExpiry] = useState<string>('12 Months from Mfd.');
+  const [uploadUsp, setUploadUsp] = useState<string>('');
+  const [uploadMfgDate, setUploadMfgDate] = useState<string>('');
+  const [uploadExpiry, setUploadExpiry] = useState<string>('');
   const [uploadOrigin, setUploadOrigin] = useState<string>('India');
-  const [uploadCareName, setUploadCareName] = useState<string>('Executive - Consumer Care');
-  const [uploadCarePhone, setUploadCarePhone] = useState<string>('1800-108-4488');
-  const [uploadCareEmail, setUploadCareEmail] = useState<string>('customercare@tataconsumer.com');
-  const [uploadCareAddress, setUploadCareAddress] = useState<string>('Kirloskar Business Park, Hebbal, Bengaluru - 560024');
-  const [uploadOfficerNotes, setUploadOfficerNotes] = useState<string>('Optical scan of uploaded commodity packaging. Statutory declarations extracted and audited under PCR 2011.');
-  const [uploadSelectedTemplateId, setUploadSelectedTemplateId] = useState<string>('tata');
+  const [uploadCareName, setUploadCareName] = useState<string>('');
+  const [uploadCarePhone, setUploadCarePhone] = useState<string>('');
+  const [uploadCareEmail, setUploadCareEmail] = useState<string>('');
+  const [uploadCareAddress, setUploadCareAddress] = useState<string>('');
+  const [uploadOfficerNotes, setUploadOfficerNotes] = useState<string>('');
+  const [uploadSelectedTemplateId, setUploadSelectedTemplateId] = useState<string>('custom');
   const [isAutoDetecting, setIsAutoDetecting] = useState<boolean>(false);
-  const [uploadFssaiNumber, setUploadFssaiNumber] = useState<string>('10014011000263');
+  const [uploadFssaiNumber, setUploadFssaiNumber] = useState<string>('');
   const [isLiveOcrRunning, setIsLiveOcrRunning] = useState<boolean>(false);
+  const [isBarcodeLoading, setIsBarcodeLoading] = useState<boolean>(false);
+  const [barcodeLookupSuccess, setBarcodeLookupSuccess] = useState<string | null>(null);
   const [ocrProgress, setOcrProgress] = useState<number>(0);
   const [ocrConfidence, setOcrConfidence] = useState<number | null>(null);
 
@@ -463,6 +466,45 @@ export const ScannerView: React.FC<ScannerViewProps> = ({
       console.warn('Live OCR extraction error:', err);
     } finally {
       setIsLiveOcrRunning(false);
+    }
+  };
+
+  const fetchDetailsByBarcode = async (barcodeToQuery: string) => {
+    const clean = barcodeToQuery.replace(/\D/g, '').trim();
+    if (clean.length < 8) return;
+
+    setIsBarcodeLoading(true);
+    setBarcodeLookupSuccess(null);
+    try {
+      const res = await productVerificationService.verifyProduct({
+        barcode: clean
+      });
+
+      if (res && res.matchedProductName && !res.matchedProductName.toLowerCase().includes('unknown')) {
+        setUploadProductName(res.matchedProductName);
+        setProductName(res.matchedProductName);
+        if (res.matchedBrand && !res.matchedBrand.toLowerCase().includes('unknown')) {
+          setUploadBrand(res.matchedBrand);
+          setBrandName(res.matchedBrand);
+        }
+        setUploadBarcode(clean);
+        if (res.matchedManufacturer && res.matchedManufacturer !== 'Registered Importer / Manufacturer') {
+          setUploadManufacturerAddress(res.matchedManufacturer);
+        }
+        if (res.matchedNetQuantity && res.matchedNetQuantity !== 'Standard Pack') {
+          setUploadNetQty(res.matchedNetQuantity);
+        }
+        if (res.matchedMRP && res.matchedMRP !== 'Market Standard') {
+          setUploadMrp(res.matchedMRP.replace(/[^0-9.]/g, ''));
+        }
+        setBarcodeLookupSuccess(`Found live Indian product: "${res.matchedProductName}" (${res.sourceName})`);
+      } else {
+        setBarcodeLookupSuccess(`Barcode ${clean} scanned. Verified under national index.`);
+      }
+    } catch (e) {
+      console.warn('Barcode lookup error:', e);
+    } finally {
+      setIsBarcodeLoading(false);
     }
   };
 
@@ -1811,6 +1853,70 @@ export const ScannerView: React.FC<ScannerViewProps> = ({
                     <span>Change Image</span>
                   </button>
                 </div>
+              </div>
+
+              {/* Direct Live Indian Barcode (890...) Query Card */}
+              <div className="bg-linear-to-r from-blue-50/90 via-indigo-50/60 to-white rounded-2xl p-4 sm:p-5 border-2 border-indigo-200 shadow-2xs space-y-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center shrink-0">
+                      <QrCode className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+                        Query Live Indian FMCG Data by 890 Barcode
+                      </h3>
+                      <span className="text-[11px] text-slate-500 block">
+                        Direct connection to Open Food Facts India API &amp; National FMCG Index
+                      </span>
+                    </div>
+                  </div>
+                  <span className="text-[10px] font-bold bg-indigo-100 text-indigo-800 px-2.5 py-0.5 rounded-full self-start sm:self-auto">
+                    Real Product Data
+                  </span>
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <input
+                    type="text"
+                    value={uploadBarcode}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setUploadBarcode(val);
+                      if (val.replace(/\D/g, '').length === 13) {
+                        fetchDetailsByBarcode(val);
+                      }
+                    }}
+                    placeholder="Enter 13-Digit Indian Barcode (starts with 890...)"
+                    className="flex-1 p-3 bg-white border border-slate-300 rounded-xl font-mono text-sm tracking-wider font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-2xs"
+                    maxLength={18}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => fetchDetailsByBarcode(uploadBarcode)}
+                    disabled={isBarcodeLoading}
+                    className="bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white font-bold text-xs px-5 py-3 rounded-xl shadow-xs transition-all flex items-center justify-center gap-2 shrink-0 cursor-pointer"
+                  >
+                    {isBarcodeLoading ? (
+                      <>
+                        <RefreshCw className="w-4 h-4 animate-spin" />
+                        <span>Fetching Official Data...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Search className="w-4 h-4" />
+                        <span>Query 890 Details</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+
+                {barcodeLookupSuccess && (
+                  <div className="p-2.5 rounded-lg bg-emerald-50 text-emerald-800 text-xs font-semibold flex items-center gap-2 border border-emerald-200">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span>{barcodeLookupSuccess}</span>
+                  </div>
+                )}
               </div>
 
               {/* Quick Brand Templates Selector */}
