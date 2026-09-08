@@ -430,6 +430,35 @@ export const ScannerView: React.FC<ScannerViewProps> = ({
         setUploadProductName(extracted.detectedProductName);
         setProductName(extracted.detectedProductName);
       }
+
+      // Immediately query Open Food Facts India & FSSAI Registry with extracted signals
+      try {
+        const liveVerify = await productVerificationService.verifyProduct({
+          barcode: extracted.detectedBarcode,
+          fssai: extracted.detectedFssaiNumber,
+          brand: extracted.detectedBrand,
+          productName: extracted.detectedProductName,
+          netQuantity: extracted.detectedNetQty,
+          mrp: extracted.detectedMrp
+        });
+
+        if (liveVerify && liveVerify.matchedProductName && !liveVerify.matchedProductName.toLowerCase().includes('unknown')) {
+          setUploadProductName(liveVerify.matchedProductName);
+          setProductName(liveVerify.matchedProductName);
+        }
+        if (liveVerify && liveVerify.matchedBrand && !liveVerify.matchedBrand.toLowerCase().includes('unknown')) {
+          setUploadBrand(liveVerify.matchedBrand);
+          setBrandName(liveVerify.matchedBrand);
+        }
+        if (liveVerify && liveVerify.matchedManufacturer && liveVerify.matchedManufacturer !== 'Registered Importer / Manufacturer') {
+          setUploadManufacturerAddress(liveVerify.matchedManufacturer);
+        }
+        if (liveVerify && liveVerify.matchedNetQuantity && liveVerify.matchedNetQuantity !== 'Standard Pack') {
+          setUploadNetQty(liveVerify.matchedNetQuantity);
+        }
+      } catch (verifyErr) {
+        console.warn('Real-time product lookup error:', verifyErr);
+      }
     } catch (err) {
       console.warn('Live OCR extraction error:', err);
     } finally {
@@ -584,6 +613,19 @@ export const ScannerView: React.FC<ScannerViewProps> = ({
             ? 'Designated grievance officer, helpline number, and customer care email ID declared.'
             : 'VIOLATION: Missing mandatory electronic contact email for consumer grievances under Rule 6(1)(f).',
           boundingBox: { x: 10, y: 80, width: 80, height: 10 }
+        },
+        {
+          id: 'f-up-fssai',
+          key: 'fssai_license',
+          label: 'FSSAI Food Safety License Number',
+          value: uploadFssaiNumber.trim() ? `FSSAI Lic. No. ${uploadFssaiNumber.trim()}` : 'FSSAI License Not Found on Pack',
+          confidence: uploadFssaiNumber.trim().length === 14 ? 98 : 45,
+          ruleReference: 'FSS (Packaging & Labelling) Regulations, 2020',
+          status: uploadFssaiNumber.trim().length === 14 ? 'pass' : 'violation',
+          statusExplanation: uploadFssaiNumber.trim().length === 14
+            ? `Verified 14-digit FSSAI statutory license number: ${uploadFssaiNumber.trim()}`
+            : 'VIOLATION: Missing mandatory 14-digit FSSAI Food Safety license number on food packaging.',
+          boundingBox: { x: 10, y: 35, width: 45, height: 7 }
         }
       ];
 
@@ -693,11 +735,11 @@ export const ScannerView: React.FC<ScannerViewProps> = ({
       inspectorName: currentUser.name,
       inspectorDesignation: currentUser.role,
       inspectorZone: currentUser.zone,
-      productName: confirmedEvidence.detectedProductName,
-      brand: confirmedEvidence.detectedBrand,
+      productName: pendingOnlineResult?.matchedProductName || confirmedEvidence.detectedProductName,
+      brand: pendingOnlineResult?.matchedBrand || confirmedEvidence.detectedBrand,
       category: pendingCategory,
       batchNumber: confirmedEvidence.detectedBatchNumber || 'N/A',
-      barcode: confirmedEvidence.detectedBarcode,
+      barcode: pendingOnlineResult?.matchedBarcode || confirmedEvidence.detectedBarcode,
       labelImage: pendingLabelImage || uploadedImage,
       fields: pendingFields,
       ruleResults: pcrResults,
