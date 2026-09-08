@@ -29,6 +29,7 @@ interface DashboardViewProps {
   onViewReport: (inspection: InspectionRecord) => void;
   onNavigateToComplaints?: () => void;
   onNavigateToCommunity?: () => void;
+  onNavigateToFssai?: () => void;
 }
 
 export const DashboardView: React.FC<DashboardViewProps> = ({
@@ -37,7 +38,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   onViewInspection,
   onViewReport,
   onNavigateToComplaints,
-  onNavigateToCommunity
+  onNavigateToCommunity,
+  onNavigateToFssai
 }) => {
   // Active product loaded inside hero camera viewfinder
   const [selectedHeroPresetId, setSelectedHeroPresetId] = useState<string>('demo-food-compliant');
@@ -342,6 +344,36 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           <span>Open Community Board</span>
           <ChevronRight className="w-3.5 h-3.5" />
         </button>
+      </div>
+
+      {/* FSSAI FoSCoS 14-Digit Statutory License Verifier Banner */}
+      <div className="bg-linear-to-r from-orange-50/90 via-white to-amber-50/70 rounded-xl p-4 border border-orange-200 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-lg bg-orange-600 text-white flex items-center justify-center font-bold text-sm shrink-0 shadow-xs">
+            <Award className="w-5 h-5" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold text-slate-900">National FSSAI FoSCoS License Verification</span>
+              <span className="bg-orange-100 text-orange-800 text-[10px] font-bold px-1.5 py-0.2 rounded border border-orange-200">
+                14-Digit Decoder
+              </span>
+            </div>
+            <p className="text-[11px] text-slate-600 mt-0.5">
+              Verify manufacturer licenses, decode state jurisdictions, issue years, and check the central national Food Safety Compliance System.
+            </p>
+          </div>
+        </div>
+
+        {onNavigateToFssai && (
+          <button
+            onClick={onNavigateToFssai}
+            className="px-3.5 py-1.5 bg-orange-600 hover:bg-orange-700 text-white rounded-lg text-xs font-bold shadow-xs shrink-0 flex items-center gap-1.5 transition-colors self-start sm:self-auto cursor-pointer"
+          >
+            <span>Verify by FSSAI Number</span>
+            <ChevronRight className="w-3.5 h-3.5" />
+          </button>
+        )}
       </div>
 
       {/* Middle Section: Violation Breakdown + Market Grievance Product Target Card */}

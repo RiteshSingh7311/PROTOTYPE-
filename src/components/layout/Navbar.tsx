@@ -14,7 +14,8 @@ import {
   Sun,
   Moon,
   Menu,
-  X
+  X,
+  Award
 } from 'lucide-react';
 import { SihLogo } from '../common/SihLogo';
 
@@ -182,6 +183,18 @@ export const Navbar: React.FC<NavbarProps> = ({
               <span>Scanner</span>
             </button>
 
+            <button
+              onClick={() => handleTabClick('fssai')}
+              className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all shrink-0 ${
+                activeTab === 'fssai'
+                  ? 'bg-orange-50 text-orange-700 shadow-xs ring-1 ring-orange-200'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+              }`}
+            >
+              <Award className="w-3.5 h-3.5 text-orange-600" />
+              <span>FSSAI Verifier</span>
+            </button>
+
             {hasActiveInspection && (
               <button
                 onClick={() => handleTabClick('results')}
@@ -327,6 +340,16 @@ export const Navbar: React.FC<NavbarProps> = ({
             >
               <ScanLine className="w-4 h-4" />
               <span>New Inspection</span>
+            </button>
+
+            <button
+              onClick={() => handleTabClick('fssai')}
+              className={`flex items-center gap-2 p-2.5 rounded-lg transition-all ${
+                activeTab === 'fssai' ? 'bg-orange-600 text-white' : 'text-slate-700 hover:bg-slate-100'
+              }`}
+            >
+              <Award className="w-4 h-4" />
+              <span>FSSAI License Verifier</span>
             </button>
 
             {hasActiveInspection && (

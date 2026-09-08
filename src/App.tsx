@@ -12,6 +12,7 @@ import { RuleLibraryView } from './components/rules/RuleLibraryView';
 import { SettingsView } from './components/settings/SettingsView';
 import { ComplaintsView } from './components/complaints/ComplaintsView';
 import { CommunityView } from './components/community/CommunityView';
+import { FssaiVerificationView } from './components/fssai/FssaiVerificationView';
 
 import { InspectionRecord, ConsumerComplaint, ComplaintStatus, CommunityPost, CommunityComment } from './types';
 import { INITIAL_INSPECTIONS, DEMO_PRESETS } from './data/mockData';
@@ -295,6 +296,7 @@ export function App() {
             }}
             onNavigateToComplaints={() => setActiveTab('complaints')}
             onNavigateToCommunity={() => setActiveTab('community')}
+            onNavigateToFssai={() => setActiveTab('fssai')}
           />
         )}
 
@@ -379,6 +381,15 @@ export function App() {
             onAddComment={handleAddCommunityComment}
             onScanProduct={handleScanFromCommunity}
             currentUser={currentUser}
+          />
+        )}
+
+        {activeTab === 'fssai' && (
+          <FssaiVerificationView
+            onStartInspectionWithFssai={(fssaiNum, brand) => {
+              setSelectedScannerPreset('demo-food-compliant');
+              setActiveTab('scanner');
+            }}
           />
         )}
 
