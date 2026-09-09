@@ -1,4 +1,4 @@
-# 🛡️ LabelGuard AI
+# 🛡️ PackSURE AI
 
 ### **Autonomous Legal Metrology & FSSAI Label Compliance Enforcement System**
 *Developed for Smart India Hackathon (SIH) — Ministry of Consumer Affairs, Food & Public Distribution*
@@ -18,7 +18,7 @@
 
 Current prototype scanners often **hallucinate** or **guess** company names, product variants, and Maximum Retail Prices (MRP) when packaging images are low-resolution, angled, or torn. Furthermore, many generic checkers apply arbitrary rules without category awareness and silently overwrite physical label values with random online data.
 
-**LabelGuard AI** solves this with an **Evidence-First Multi-Signal Verification Architecture**:
+**PackSURE AI** solves this with an **Evidence-First Multi-Signal Verification Architecture**:
 > **Core Principle:**  
 > **`Identify → Extract → Verify → Confirm → Check Rules → Generate Report`**  
 > *Do not guess. Do not silently overwrite. Always show statutory evidence.*
@@ -334,7 +334,7 @@ Open [http://localhost:5173/](http://localhost:5173/) in your browser to test th
 ---
 
 ## 👥 Smart India Hackathon 2026 Team
-- **Project Title**: LabelGuard AI
+- **Project Title**: PackSURE AI
 - **Problem Statement**: Automated Verification of Legal Metrology (Packaged Commodities) Rules & Food Safety Declarations
 - **Repository**: [https://github.com/RiteshSingh7311/PROTOTYPE-.git](https://github.com/RiteshSingh7311/PROTOTYPE-.git)
 

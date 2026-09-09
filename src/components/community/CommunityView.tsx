@@ -460,7 +460,7 @@ export const CommunityView: React.FC<CommunityViewProps> = ({
                             className="mt-2 w-full py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-bold shadow-xs flex items-center justify-center gap-1.5 transition-colors"
                           >
                             <ScanLine className="w-3.5 h-3.5" />
-                            <span>Scan in LabelCheck AI</span>
+                            <span>Scan in PackSURE AI</span>
                           </button>
                         )}
                       </div>

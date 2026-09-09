@@ -2,6 +2,7 @@ import React from 'react';
 import { 
   CheckCircle2, 
   AlertCircle, 
+  AlertTriangle,
   FileText, 
   Scale, 
   Layers, 
@@ -15,7 +16,11 @@ import {
   FileCheck2,
   Mail,
   MapPin,
-  HelpCircle
+  HelpCircle,
+  Sparkles,
+  Globe,
+  Phone,
+  Check
 } from 'lucide-react';
 
 export interface ChipsCustomDetails {
@@ -32,6 +37,7 @@ export interface ChipsCustomDetails {
   manufacturer?: string;
   address?: string;
   customerCare?: string;
+  countryOfOrigin?: string;
   verifiedFieldKeys?: string[];
 }
 
@@ -42,176 +48,374 @@ interface ChipsScanResultProps {
   onNavigateToReport?: () => void;
 }
 
+export type FieldStatus = 
+  | 'Verified from uploaded label'
+  | 'Provided'
+  | 'Not verified'
+  | 'Not provided on the uploaded label';
+
+interface StatutoryFieldItem {
+  id: string;
+  label: string;
+  value: string;
+  status: FieldStatus;
+  evidence: string;
+  rule: string;
+  icon: React.ComponentType<{ className?: string }>;
+}
+
 export const ChipsScanResult: React.FC<ChipsScanResultProps> = ({
   uploadedImage,
   customData,
   onNavigateToAudit,
   onNavigateToReport
 }) => {
-  // Statutory values for the ₹5 Demo Chips packaging
+  // Provided test values for SIH presentation
   const defaultValues = {
-    productName: 'Demo Chips',
-    brand: 'Demo Chips',
+    productName: 'Potato Chips',
+    brand: "Lay's",
+    netQty: '50 g',
     mrp: '₹5',
-    netQty: '20 gm',
-    mfgDate: '9 December 2025',
-    expiry: '2 July 2026',
-    batchNumber: 'CHIPS-DEC25-001',
-    fssaiNumber: '10014064000345',
-    ingredients: 'Potato, edible vegetable oil, salt, spices and seasoning',
-    allergens: 'May contain traces of milk and other allergens',
-    manufacturer: 'Demo Foods Pvt. Ltd.',
-    address: 'Industrial Area, Lucknow, Uttar Pradesh, India',
-    customerCare: 'care@demofoods.example'
+    mfgDate: '12 August 2025',
+    expiry: '12 April 2026',
+    customerCare: '1800-123-4567',
+    countryOfOrigin: 'India',
+    fssaiNumber: '10014064000435',
+    batchNumber: '',
+    ingredients: '',
+    allergens: '',
+    manufacturer: '',
+    address: ''
   };
 
-  // If uploaded image has visible/detected OCR data, use it; otherwise use the designated value
+  const NOT_PROVIDED_TEXT = 'Not provided on the uploaded label';
+
+  // Extract values, respecting live OCR if detected; otherwise use provided test values
   const productName = customData?.productName || defaultValues.productName;
   const brand = customData?.brand || defaultValues.brand;
-  const mrp = customData?.mrp ? (customData.mrp.startsWith('₹') ? customData.mrp : `₹${customData.mrp}`) : defaultValues.mrp;
+  const mrp = customData?.mrp 
+    ? (customData.mrp.startsWith('₹') ? customData.mrp : `₹${customData.mrp}`) 
+    : defaultValues.mrp;
   const netQty = customData?.netQty || defaultValues.netQty;
   const mfgDate = customData?.mfgDate || defaultValues.mfgDate;
   const expiry = customData?.expiry || defaultValues.expiry;
-  const batchNumber = customData?.batchNumber || defaultValues.batchNumber;
-  const fssaiNumber = customData?.fssaiNumber || defaultValues.fssaiNumber;
-  const ingredients = customData?.ingredients || defaultValues.ingredients;
-  const allergens = customData?.allergens || defaultValues.allergens;
-  const manufacturer = customData?.manufacturer || defaultValues.manufacturer;
-  const address = customData?.address || defaultValues.address;
   const customerCare = customData?.customerCare || defaultValues.customerCare;
+  const countryOfOrigin = customData?.countryOfOrigin || defaultValues.countryOfOrigin;
+  const fssaiNumber = customData?.fssaiNumber || defaultValues.fssaiNumber;
 
-  const verifiedKeys = new Set(customData?.verifiedFieldKeys || [
-    'productName', 'brand', 'mrp', 'netQty', 'mfgDate', 'expiry',
-    'batchNumber', 'fssaiNumber', 'ingredients', 'allergens',
-    'manufacturer', 'address', 'customerCare'
-  ]);
+  const batchNumber = customData?.batchNumber && customData.batchNumber.trim() 
+    ? customData.batchNumber 
+    : NOT_PROVIDED_TEXT;
+  const ingredients = customData?.ingredients && customData.ingredients.trim() 
+    ? customData.ingredients 
+    : NOT_PROVIDED_TEXT;
+  const allergens = customData?.allergens && customData.allergens.trim() 
+    ? customData.allergens 
+    : NOT_PROVIDED_TEXT;
+  const manufacturer = customData?.manufacturer && customData.manufacturer.trim() 
+    ? customData.manufacturer 
+    : NOT_PROVIDED_TEXT;
+  const address = customData?.address && customData.address.trim() 
+    ? customData.address 
+    : NOT_PROVIDED_TEXT;
 
-  // All 13 fields requested in specifications
-  const statutoryFields = [
+  const verifiedKeys = new Set(customData?.verifiedFieldKeys || []);
+
+  // Helper to determine status and exact evidence for each field
+  const getFieldMeta = (
+    fieldKey: string,
+    value: string,
+    isMissing: boolean,
+    defaultStatus: FieldStatus,
+    providedEvidence: string,
+    missingEvidence: string
+  ): { status: FieldStatus; evidence: string } => {
+    // If OCR on the uploaded image clearly confirmed this field
+    if (verifiedKeys.has(`${fieldKey}_ocr`)) {
+      return {
+        status: 'Verified from uploaded label',
+        evidence: 'Confirmed by physical text extraction from the uploaded product label image.'
+      };
+    }
+    // If missing or unpopulated
+    if (isMissing || value === NOT_PROVIDED_TEXT || !value) {
+      return {
+        status: 'Not provided on the uploaded label',
+        evidence: missingEvidence
+      };
+    }
+    return {
+      status: defaultStatus,
+      evidence: providedEvidence
+    };
+  };
+
+  // Full 14-field specification in exact requested order
+  const statutoryFields: StatutoryFieldItem[] = [
     {
       id: 'productName',
-      label: 'Product name',
+      label: '1. Product name',
       value: productName,
-      isVerified: verifiedKeys.has('productName'),
       rule: 'Rule 6(1)(a)',
-      icon: Package
+      icon: Package,
+      ...getFieldMeta(
+        'productName',
+        productName,
+        false,
+        'Provided',
+        'Product name declared as Potato Chips.',
+        'Product name is not visible on the uploaded label.'
+      )
     },
     {
       id: 'brand',
-      label: 'Brand',
+      label: '2. Brand / Company',
       value: brand,
-      isVerified: verifiedKeys.has('brand'),
       rule: 'FBO Identity',
-      icon: Tag
+      icon: Tag,
+      ...getFieldMeta(
+        'brand',
+        brand,
+        false,
+        'Provided',
+        "Brand / Company declared as Lay's.",
+        'Brand / Company is not visible on the uploaded label.'
+      )
     },
     {
       id: 'mrp',
-      label: 'MRP / Price',
+      label: '3. MRP',
       value: mrp,
-      isVerified: verifiedKeys.has('mrp'),
       rule: 'Rule 6(1)(c)',
-      icon: Tag
+      icon: Tag,
+      ...getFieldMeta(
+        'mrp',
+        mrp,
+        false,
+        'Provided',
+        'Maximum Retail Price declared as ₹5.',
+        'MRP is not visible on the uploaded label.'
+      )
     },
     {
       id: 'netQty',
-      label: 'Net quantity',
+      label: '4. Net quantity',
       value: netQty,
-      isVerified: verifiedKeys.has('netQty'),
       rule: 'Rule 6(1)(b) & Rule 7',
-      icon: Scale
+      icon: Scale,
+      ...getFieldMeta(
+        'netQty',
+        netQty,
+        false,
+        'Provided',
+        'Net quantity declared as 50 g in metric units.',
+        'Net quantity is not visible on the uploaded label.'
+      )
     },
     {
       id: 'mfgDate',
-      label: 'Manufacturing date',
+      label: '5. Manufacturing date',
       value: mfgDate,
-      isVerified: verifiedKeys.has('mfgDate'),
       rule: 'Rule 6(1)(d)',
-      icon: Calendar
+      icon: Calendar,
+      ...getFieldMeta(
+        'mfgDate',
+        mfgDate,
+        false,
+        'Provided',
+        'Manufacturing date declared as 12 August 2025.',
+        'Manufacturing date is not visible on the uploaded label.'
+      )
     },
     {
       id: 'expiry',
-      label: 'Best before / Expiry',
+      label: '6. Best before',
       value: expiry,
-      isVerified: verifiedKeys.has('expiry'),
       rule: 'Rule 6(1)(d)',
-      icon: Calendar
+      icon: Calendar,
+      ...getFieldMeta(
+        'expiry',
+        expiry,
+        false,
+        'Provided',
+        'Best before declared as 12 April 2026.',
+        'Best before date is not visible on the uploaded label.'
+      )
     },
     {
       id: 'batchNumber',
-      label: 'Batch number',
+      label: '7. Batch number',
       value: batchNumber,
-      isVerified: verifiedKeys.has('batchNumber'),
       rule: 'Rule 6(1)(e)',
-      icon: FileCheck2
+      icon: FileCheck2,
+      ...getFieldMeta(
+        'batchNumber',
+        batchNumber,
+        batchNumber === NOT_PROVIDED_TEXT,
+        'Provided',
+        `Batch number declared as ${batchNumber}.`,
+        'Batch number is not visible or declared on the uploaded label.'
+      )
     },
     {
       id: 'fssaiNumber',
-      label: 'FSSAI license number',
+      label: '8. FSSAI license number',
       value: fssaiNumber,
-      isVerified: verifiedKeys.has('fssaiNumber'),
       rule: 'FSSAI (FSSR 2020)',
-      icon: ShieldCheck
+      icon: ShieldCheck,
+      ...getFieldMeta(
+        'fssaiNumber',
+        fssaiNumber,
+        false,
+        'Not verified',
+        '14-digit FSSAI license number format present. Independent portal verification required to confirm active status.',
+        'FSSAI license number is not visible on the uploaded label.'
+      )
     },
     {
       id: 'ingredients',
-      label: 'Ingredients',
+      label: '9. Ingredients',
       value: ingredients,
-      isVerified: verifiedKeys.has('ingredients'),
       rule: 'FSSAI Reg. 2.2.2',
-      icon: FileText
+      icon: FileText,
+      ...getFieldMeta(
+        'ingredients',
+        ingredients,
+        ingredients === NOT_PROVIDED_TEXT,
+        'Provided',
+        `Ingredients declared: ${ingredients}.`,
+        'Ingredients list is not visible or declared on the uploaded label.'
+      )
     },
     {
       id: 'allergens',
-      label: 'Allergen information',
+      label: '10. Allergen information',
       value: allergens,
-      isVerified: verifiedKeys.has('allergens'),
       rule: 'FSSAI Allergen Mandate',
-      icon: AlertCircle
+      icon: AlertCircle,
+      ...getFieldMeta(
+        'allergens',
+        allergens,
+        allergens === NOT_PROVIDED_TEXT,
+        'Provided',
+        `Allergen statement declared: ${allergens}.`,
+        'Allergen declaration is not visible or declared on the uploaded label.'
+      )
     },
     {
       id: 'manufacturer',
-      label: 'Manufacturer / Packer',
+      label: '11. Manufacturer / Packer',
       value: manufacturer,
-      isVerified: verifiedKeys.has('manufacturer'),
       rule: 'Rule 6(1)(a)',
-      icon: Building2
+      icon: Building2,
+      ...getFieldMeta(
+        'manufacturer',
+        manufacturer,
+        manufacturer === NOT_PROVIDED_TEXT,
+        'Provided',
+        `Manufacturer declared as ${manufacturer}.`,
+        'Manufacturer / Packer details are not visible or declared on the uploaded label.'
+      )
     },
     {
       id: 'address',
-      label: 'Manufacturer / Office address',
+      label: '12. Manufacturer / Office address',
       value: address,
-      isVerified: verifiedKeys.has('address'),
       rule: 'Rule 6(1)(a)',
-      icon: MapPin
+      icon: MapPin,
+      ...getFieldMeta(
+        'address',
+        address,
+        address === NOT_PROVIDED_TEXT,
+        'Provided',
+        `Manufacturer address declared: ${address}.`,
+        'Manufacturer / Office address is not visible or declared on the uploaded label.'
+      )
     },
     {
       id: 'customerCare',
-      label: 'Customer care details',
+      label: '13. Customer care details',
       value: customerCare,
-      isVerified: verifiedKeys.has('customerCare'),
       rule: 'Rule 6(1)(f)',
-      icon: Mail
+      icon: Phone,
+      ...getFieldMeta(
+        'customerCare',
+        customerCare,
+        false,
+        'Not verified',
+        'Customer care phone contact provided. Contact verification against official brand records required.',
+        'Customer care contact is not visible on the uploaded label.'
+      )
+    },
+    {
+      id: 'countryOfOrigin',
+      label: '14. Country of origin',
+      value: countryOfOrigin,
+      rule: 'Rule 6(1)(n)',
+      icon: Globe,
+      ...getFieldMeta(
+        'countryOfOrigin',
+        countryOfOrigin,
+        false,
+        'Provided',
+        'Country of origin declared as India.',
+        'Country of origin is not visible on the uploaded label.'
+      )
     }
   ];
 
-  // Competitor comparison dataset
+  // Competitor comparison dataset (all 14 fields)
   const competitorComparisonData = [
-    { feature: 'Product name', chips: productName, kurkure: 'Kurkure' },
-    { feature: 'Brand', chips: brand, kurkure: 'Kurkure (PepsiCo)' },
-    { feature: 'MRP / Price', chips: mrp, kurkure: 'Not provided' },
-    { feature: 'Net quantity', chips: netQty, kurkure: 'Not provided' },
-    { feature: 'Manufacturing date', chips: mfgDate, kurkure: 'Not provided' },
-    { feature: 'Best before / Expiry', chips: expiry, kurkure: 'Not provided' },
-    { feature: 'Batch number', chips: batchNumber, kurkure: 'Not provided' },
-    { feature: 'FSSAI license number', chips: fssaiNumber, kurkure: 'Not provided' },
-    { feature: 'Ingredients', chips: ingredients, kurkure: 'Not provided' },
-    { feature: 'Allergen information', chips: allergens, kurkure: 'Not provided' },
-    { feature: 'Manufacturer / Packer', chips: manufacturer, kurkure: 'Not provided' },
-    { feature: 'Manufacturer / Office address', chips: address, kurkure: 'Not provided' },
-    { feature: 'Customer care details', chips: customerCare, kurkure: 'Not provided' },
+    { feature: 'Product name', current: productName, kurkure: 'Kurkure' },
+    { feature: 'Brand / Company', current: brand, kurkure: 'Kurkure (PepsiCo)' },
+    { feature: 'MRP', current: mrp, kurkure: NOT_PROVIDED_TEXT },
+    { feature: 'Net quantity', current: netQty, kurkure: NOT_PROVIDED_TEXT },
+    { feature: 'Manufacturing date', current: mfgDate, kurkure: NOT_PROVIDED_TEXT },
+    { feature: 'Best before', current: expiry, kurkure: NOT_PROVIDED_TEXT },
+    { feature: 'Batch number', current: batchNumber, kurkure: NOT_PROVIDED_TEXT },
+    { feature: 'FSSAI license number', current: fssaiNumber, kurkure: NOT_PROVIDED_TEXT },
+    { feature: 'Ingredients', current: ingredients, kurkure: NOT_PROVIDED_TEXT },
+    { feature: 'Allergen information', current: allergens, kurkure: NOT_PROVIDED_TEXT },
+    { feature: 'Manufacturer / Packer', current: manufacturer, kurkure: NOT_PROVIDED_TEXT },
+    { feature: 'Manufacturer / Office address', current: address, kurkure: NOT_PROVIDED_TEXT },
+    { feature: 'Customer care details', current: customerCare, kurkure: NOT_PROVIDED_TEXT },
+    { feature: 'Country of origin', current: countryOfOrigin, kurkure: 'India' }
   ];
 
-  const verifiedCount = statutoryFields.filter(f => f.value && f.value !== 'Not provided').length;
+  // Helper to render distinct status badges
+  const renderStatusBadge = (status: FieldStatus) => {
+    switch (status) {
+      case 'Verified from uploaded label':
+        return (
+          <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 shrink-0">
+            <CheckCircle2 className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
+            <span>Verified from uploaded label</span>
+          </span>
+        );
+      case 'Provided':
+        return (
+          <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 border border-blue-200 dark:border-blue-800 shrink-0">
+            <Check className="w-3 h-3 text-blue-600 dark:text-blue-400" />
+            <span>Provided</span>
+          </span>
+        );
+      case 'Not verified':
+        return (
+          <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full bg-amber-50 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-300 dark:border-amber-700 shrink-0">
+            <HelpCircle className="w-3 h-3 text-amber-600 dark:text-amber-400" />
+            <span>Not verified</span>
+          </span>
+        );
+      case 'Not provided on the uploaded label':
+      default:
+        return (
+          <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 border border-slate-200 dark:border-slate-700 shrink-0">
+            <span className="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
+            <span>Not provided on the uploaded label</span>
+          </span>
+        );
+    }
+  };
 
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
@@ -219,26 +423,26 @@ export const ChipsScanResult: React.FC<ChipsScanResultProps> = ({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200 dark:border-slate-800">
         <div>
           <div className="flex items-center gap-2 text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider mb-1">
-            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-            <span>SIH 2026 Prototype Optical Inspection Result</span>
+            <ShieldCheck className="w-4 h-4 text-blue-600" />
+            <span>Evidence-Based Optical Evaluation</span>
           </div>
           <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white font-display">
             Scan Review &amp; Analysis Report
           </h2>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-            Complete product packaging evaluation for uploaded chips packet test sample.
+            Evidence-grounded packaged commodity evaluation under Legal Metrology &amp; FSSAI Regulations.
           </p>
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
-            <span className="w-2 h-2 rounded-full bg-emerald-600 animate-pulse"></span>
-            Review completed
+          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-amber-50 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300 border border-amber-300 dark:border-amber-700/80">
+            <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+            Partially verified / Further verification required
           </span>
         </div>
       </div>
 
-      {/* TOP DUAL CARDS: 1. UPLOADED IMAGE & 2. CORE COMPLIANCE REVIEW CARD */}
+      {/* TOP DUAL CARDS: 1. UPLOADED IMAGE & 2. CORE COMPLIANCE REVIEW & SUMMARY CARD */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Left 4 Cols: 1. Uploaded Product Image */}
         <div className="lg:col-span-4 bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-200 dark:border-slate-800 shadow-sm space-y-3">
@@ -247,7 +451,7 @@ export const ChipsScanResult: React.FC<ChipsScanResultProps> = ({
               <Layers className="w-3.5 h-3.5 text-blue-600" />
               <span>1. Uploaded Product Image</span>
             </span>
-            <span className="text-[10px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-2 py-0.5 rounded font-mono">
+            <span className="text-[10px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-2 py-0.5 rounded font-mono border border-slate-200 dark:border-slate-700">
               Optical Input
             </span>
           </div>
@@ -258,36 +462,43 @@ export const ChipsScanResult: React.FC<ChipsScanResultProps> = ({
               alt="Uploaded Chips Packaging"
               className="max-h-full max-w-full object-contain rounded-lg drop-shadow-md group-hover:scale-105 transition-transform duration-300"
             />
-            <div className="absolute bottom-2 left-2 bg-slate-900/85 backdrop-blur-xs text-white text-[10px] font-mono px-2.5 py-1 rounded border border-slate-700">
-              {productName} • {mrp} • {netQty}
+            <div className="absolute bottom-2 left-2 bg-slate-900/90 backdrop-blur-xs text-white text-[10px] font-mono px-2.5 py-1 rounded border border-slate-700 flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-blue-400"></span>
+              <span>{brand} {productName} • {mrp} • {netQty}</span>
             </div>
           </div>
 
-          <p className="text-[11px] text-slate-500 dark:text-slate-400 text-center italic">
-            Physical label image processed through optical compliance engine.
-          </p>
+          <div className="p-2.5 rounded-lg bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-800 text-[11px] text-slate-500 dark:text-slate-400 space-y-1">
+            <p className="font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1">
+              <Info className="w-3 h-3 text-blue-500" />
+              <span>Inspection Protocol Note:</span>
+            </p>
+            <p className="leading-relaxed italic">
+              Physical label image processed through optical compliance engine. Declarations are evaluated against statutory Legal Metrology rules without presumptive data.
+            </p>
+          </div>
         </div>
 
-        {/* Right 8 Cols: 3. Compliance Review Card */}
+        {/* Right 8 Cols: 2. Core Compliance Review & Executive Summary */}
         <div className="lg:col-span-8 bg-white dark:bg-slate-900 rounded-2xl p-5 sm:p-6 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-100 dark:border-slate-800">
             <div>
               <span className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider">
-                3. Compliance Review
+                2. Compliance Review
               </span>
               <h3 className="text-lg font-bold text-slate-900 dark:text-white font-display">
                 Statutory Assessment &amp; Overview
               </h3>
             </div>
-            <div className="flex items-center gap-2">
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-50 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                <span>Review status: Statutory review completed</span>
-              </span>
+            
+            {/* Prominent Overall Result Badge */}
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold bg-amber-50 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300 border border-amber-300 dark:border-amber-700">
+              <AlertTriangle className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+              <span>Overall result: Partially verified / Further verification required</span>
             </div>
           </div>
 
-          {/* Quick Metrics Grid (Primary Statutory Points) */}
+          {/* Quick Metrics Grid */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
             <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700">
               <span className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 block font-mono">
@@ -296,8 +507,8 @@ export const ChipsScanResult: React.FC<ChipsScanResultProps> = ({
               <span className="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white font-mono mt-0.5 block">
                 {mrp}
               </span>
-              <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold">
-                Rule 6(1)(c)
+              <span className="text-[10px] text-blue-600 dark:text-blue-400 font-semibold">
+                Provided
               </span>
             </div>
 
@@ -309,7 +520,7 @@ export const ChipsScanResult: React.FC<ChipsScanResultProps> = ({
                 {netQty}
               </span>
               <span className="text-[10px] text-blue-600 dark:text-blue-400 font-semibold">
-                Rule 6(1)(b)
+                Provided
               </span>
             </div>
 
@@ -321,7 +532,7 @@ export const ChipsScanResult: React.FC<ChipsScanResultProps> = ({
                 {mfgDate}
               </span>
               <span className="text-[10px] text-blue-600 dark:text-blue-400 font-semibold">
-                Rule 6(1)(d)
+                Provided
               </span>
             </div>
 
@@ -333,60 +544,106 @@ export const ChipsScanResult: React.FC<ChipsScanResultProps> = ({
                 {expiry}
               </span>
               <span className="text-[10px] text-blue-600 dark:text-blue-400 font-semibold">
-                Shelf Life
+                Provided
               </span>
             </div>
           </div>
 
-          {/* Compliance Status Tags Row */}
-          <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 flex flex-wrap items-center justify-between gap-3 text-xs">
-            <div className="flex items-center gap-2">
-              <span className="font-bold text-slate-700 dark:text-slate-300">Field Declarations:</span>
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[11px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300 border border-emerald-300">
-                <CheckCircle2 className="w-3 h-3" />
-                <span>Verified / Available: {verifiedCount} of {statutoryFields.length}</span>
+          {/* COMPLIANCE SUMMARY CARD (Requested Exact Format) */}
+          <div className="rounded-xl border border-slate-200 dark:border-slate-800 p-4 bg-slate-50/80 dark:bg-slate-850/50 space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5 uppercase tracking-wide">
+                <ShieldCheck className="w-4 h-4 text-blue-600" />
+                <span>Statutory Compliance Summary</span>
+              </span>
+              <span className="text-[10px] font-bold text-amber-700 dark:text-amber-400 bg-amber-100/70 dark:bg-amber-950/60 px-2 py-0.5 rounded border border-amber-300 dark:border-amber-700">
+                Partially Verified
               </span>
             </div>
 
-            <span className="text-[11px] text-slate-500 font-mono">
-              Batch: {batchNumber} • Lic: {fssaiNumber}
-            </span>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+              {/* 1. Product Information */}
+              <div className="p-3 bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800">
+                <div className="flex items-center gap-1.5 font-bold text-emerald-700 dark:text-emerald-400 mb-1">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                  <span>Product information: Available</span>
+                </div>
+                <p className="text-slate-600 dark:text-slate-300 text-[11px] leading-relaxed">
+                  Declared particulars for <strong>{brand} {productName}</strong> (MRP: <strong>{mrp}</strong>, Net Qty: <strong>{netQty}</strong>, Mfg: <strong>{mfgDate}</strong>, Best Before: <strong>{expiry}</strong>, Origin: <strong>{countryOfOrigin}</strong>) are available for inspection.
+                </p>
+              </div>
+
+              {/* 2. Verification Required */}
+              <div className="p-3 bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800">
+                <div className="flex items-center gap-1.5 font-bold text-amber-700 dark:text-amber-400 mb-1">
+                  <HelpCircle className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                  <span>Verification required: FSSAI license number and customer care number</span>
+                </div>
+                <p className="text-slate-600 dark:text-slate-300 text-[11px] leading-relaxed">
+                  FSSAI license number (<strong>{fssaiNumber}</strong>) and customer care number (<strong>{customerCare}</strong>) require portal verification.
+                </p>
+              </div>
+
+              {/* 3. Missing Information */}
+              <div className="p-3 bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 md:col-span-2">
+                <div className="flex items-center gap-1.5 font-bold text-slate-700 dark:text-slate-300 mb-1">
+                  <AlertCircle className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+                  <span>Missing information: Not provided on the uploaded label</span>
+                </div>
+                <p className="text-slate-600 dark:text-slate-300 text-[11px] leading-relaxed">
+                  Batch number, ingredients, allergen information, manufacturer details, and office address are not provided on the uploaded label.
+                </p>
+              </div>
+            </div>
+
+            {/* Overall Result Banner Note */}
+            <div className="p-2.5 rounded-lg bg-blue-50/70 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900 text-[11px] text-blue-900 dark:text-blue-200 flex items-start gap-2">
+              <Info className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
+              <p className="leading-relaxed">
+                <strong>Overall Result:</strong> Partially verified / Further verification required. Automated compliance checks reflect declarations visible on the label. Physical verification by an authorized officer confirms enforcement status.
+              </p>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* 2. PRODUCT INFORMATION CARD (FULL 13-FIELD SPECIFICATION TABLE) */}
+      {/* 3. PRODUCT INFORMATION CARD (FULL 14-FIELD EVIDENCE-BASED SPECIFICATION TABLE) */}
       <div className="bg-white dark:bg-slate-900 rounded-2xl p-5 sm:p-6 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-100 dark:border-slate-800">
           <div>
             <div className="flex items-center gap-2 text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider mb-0.5">
               <FileText className="w-4 h-4" />
-              <span>2. Product Information Card</span>
+              <span>3. Product Information Card</span>
             </div>
             <h3 className="text-lg font-bold text-slate-900 dark:text-white font-display">
-              Packaged Commodity Particulars &amp; Declarations
+              Packaged Commodity Particulars &amp; Statutory Declarations
             </h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              Every declaration shows its extracted value, verified provenance status, and exact evidence reasoning.
+            </p>
           </div>
           <div className="flex items-center gap-2 text-xs">
-            <span className="text-slate-500 font-mono">
-              Total Fields Displayed: {statutoryFields.length}
+            <span className="text-slate-500 font-mono bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-md border border-slate-200 dark:border-slate-700">
+              Total Monitored Declarations: 14 Fields
             </span>
           </div>
         </div>
 
-        {/* Structured 13-Field Table */}
+        {/* Structured 14-Field Table with Detailed Evidence Callouts */}
         <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800">
           <table className="w-full text-left text-xs">
             <thead>
               <tr className="bg-slate-100 dark:bg-slate-800/80 text-slate-700 dark:text-slate-200 border-b border-slate-200 dark:border-slate-800 font-bold uppercase tracking-wider text-[11px]">
-                <th className="py-3 px-4 w-1/3">Field</th>
-                <th className="py-3 px-4 w-5/12">Value</th>
-                <th className="py-3 px-4 w-1/4">Status / Provenance</th>
+                <th className="py-3 px-4 w-1/4">Field</th>
+                <th className="py-3 px-4 w-1/2">Extracted Value &amp; Statutory Evidence</th>
+                <th className="py-3 px-4 w-1/4">Status</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
               {statutoryFields.map((item, idx) => {
                 const IconComponent = item.icon;
+                const isNotProvided = item.value === NOT_PROVIDED_TEXT || !item.value;
+
                 return (
                   <tr 
                     key={item.id}
@@ -396,29 +653,50 @@ export const ChipsScanResult: React.FC<ChipsScanResultProps> = ({
                         : 'bg-slate-50/50 dark:bg-slate-850/40'
                     }`}
                   >
-                    <td className="py-3 px-4 font-semibold text-slate-800 dark:text-slate-200">
+                    {/* Column 1: Field Name & Statutory Rule Reference */}
+                    <td className="py-3.5 px-4 font-semibold text-slate-800 dark:text-slate-200 align-top">
                       <div className="flex items-center gap-2">
-                        <IconComponent className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-                        <span>{item.label}</span>
+                        <div className="p-1.5 rounded-lg bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 shrink-0 border border-blue-200/60 dark:border-blue-800/60">
+                          <IconComponent className="w-3.5 h-3.5" />
+                        </div>
+                        <div>
+                          <span className="block font-bold text-slate-900 dark:text-slate-100">
+                            {item.label}
+                          </span>
+                          <span className="text-[10px] text-slate-400 dark:text-slate-500 font-mono">
+                            {item.rule}
+                          </span>
+                        </div>
                       </div>
                     </td>
-                    <td className="py-3 px-4 font-medium text-slate-900 dark:text-white">
-                      <span className="font-semibold text-slate-900 dark:text-slate-100">
-                        {item.value}
-                      </span>
+
+                    {/* Column 2: Extracted Value + Dedicated Evidence Section */}
+                    <td className="py-3.5 px-4 align-top space-y-1.5">
+                      <div className="flex items-center gap-2">
+                        <span 
+                          className={`font-semibold text-sm ${
+                            isNotProvided 
+                              ? 'text-slate-400 dark:text-slate-500 italic font-normal' 
+                              : 'text-slate-900 dark:text-white font-mono'
+                          }`}
+                        >
+                          {item.value}
+                        </span>
+                      </div>
+
+                      {/* Small "Evidence" Section under each field */}
+                      <div className="text-[11px] text-slate-600 dark:text-slate-300 flex items-start gap-1.5 bg-slate-50 dark:bg-slate-850/80 p-2 rounded-lg border border-slate-200/70 dark:border-slate-800">
+                        <Info className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
+                        <div className="leading-snug">
+                          <strong className="text-slate-700 dark:text-slate-200">Evidence / Reason: </strong>
+                          <span>{item.evidence}</span>
+                        </div>
+                      </div>
                     </td>
-                    <td className="py-3 px-4">
-                      {!item.value || item.value === 'Not provided' ? (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
-                          <AlertCircle className="w-3 h-3" />
-                          <span>Missing / Not verified</span>
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
-                          <CheckCircle2 className="w-3 h-3" />
-                          <span>Verified / Available</span>
-                        </span>
-                      )}
+
+                    {/* Column 3: Status Badge */}
+                    <td className="py-3.5 px-4 align-top">
+                      {renderStatusBadge(item.status)}
                     </td>
                   </tr>
                 );
@@ -434,17 +712,17 @@ export const ChipsScanResult: React.FC<ChipsScanResultProps> = ({
           <div>
             <div className="flex items-center gap-2 text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider mb-0.5">
               <ShieldCheck className="w-4 h-4" />
-              <span>4. AI Verification &amp; Statutory Workflow Chart</span>
+              <span>4. Verification &amp; Statutory Workflow</span>
             </div>
             <h3 className="text-lg font-bold text-slate-900 dark:text-white font-display">
-              End-to-End Compliance Pipeline Architecture
+              End-to-End Evidence-First Inspection Architecture
             </h3>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-              Complete automated evaluation lifecycle from physical packaging upload to legal enforcement memorandum.
+              Complete automated evaluation lifecycle with clear distinction between verified label facts, provided inputs, and missing declarations.
             </p>
           </div>
-          <span className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 px-2.5 py-1 rounded-lg self-start sm:self-auto flex items-center gap-1.5">
-            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+          <span className="text-[11px] font-semibold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 px-2.5 py-1 rounded-lg self-start sm:self-auto flex items-center gap-1.5">
+            <CheckCircle2 className="w-3.5 h-3.5 text-blue-600" />
             <span>4-Stage Pipeline Active</span>
           </span>
         </div>
@@ -473,7 +751,7 @@ export const ChipsScanResult: React.FC<ChipsScanResultProps> = ({
               </li>
               <li className="flex items-start gap-1.5">
                 <span className="text-blue-500 font-bold">•</span>
-                <span>Raw bounding box text extraction</span>
+                <span>Extract physical label text signals</span>
               </li>
             </ul>
           </div>
@@ -487,20 +765,20 @@ export const ChipsScanResult: React.FC<ChipsScanResultProps> = ({
               <FileCheck2 className="w-4 h-4 text-indigo-600" />
             </div>
             <h4 className="text-xs font-bold text-slate-900 dark:text-white">
-              Particulars Mapping (13 Fields)
+              Particulars Mapping (14 Fields)
             </h4>
             <ul className="text-[11px] text-slate-600 dark:text-slate-300 space-y-1">
               <li className="flex items-start gap-1.5">
                 <span className="text-indigo-500 font-bold">•</span>
-                <span>Rule 6 Metrology regex matching</span>
+                <span>PCR 2011 Rule 6 declarations check</span>
               </li>
               <li className="flex items-start gap-1.5">
                 <span className="text-indigo-500 font-bold">•</span>
-                <span>Schedule II numeral height validation</span>
+                <span>Origin &amp; Customer Care format analysis</span>
               </li>
               <li className="flex items-start gap-1.5">
                 <span className="text-indigo-500 font-bold">•</span>
-                <span>Metric units standardization (g / gm)</span>
+                <span>Preserve missing fields without guessing</span>
               </li>
             </ul>
           </div>
@@ -519,7 +797,7 @@ export const ChipsScanResult: React.FC<ChipsScanResultProps> = ({
             <ul className="text-[11px] text-slate-600 dark:text-slate-300 space-y-1">
               <li className="flex items-start gap-1.5">
                 <span className="text-purple-500 font-bold">•</span>
-                <span>PCR 2011: MRP, Net Qty, Mfg/Exp</span>
+                <span>Legal Metrology: MRP, Net Qty, Dates</span>
               </li>
               <li className="flex items-start gap-1.5">
                 <span className="text-purple-500 font-bold">•</span>
@@ -527,7 +805,7 @@ export const ChipsScanResult: React.FC<ChipsScanResultProps> = ({
               </li>
               <li className="flex items-start gap-1.5">
                 <span className="text-purple-500 font-bold">•</span>
-                <span>FSSAI / FoSCoS database check</span>
+                <span>Flag non-verified database signals</span>
               </li>
             </ul>
           </div>
@@ -535,33 +813,33 @@ export const ChipsScanResult: React.FC<ChipsScanResultProps> = ({
           {/* Stage 4 */}
           <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-800 space-y-2.5 relative">
             <div className="flex items-center justify-between">
-              <span className="text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+              <span className="text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
                 Stage 04
               </span>
-              <FileText className="w-4 h-4 text-emerald-600" />
+              <FileText className="w-4 h-4 text-amber-600" />
             </div>
             <h4 className="text-xs font-bold text-slate-900 dark:text-white">
-              Enforcement &amp; Notice
+              Evidence Memorandum
             </h4>
             <ul className="text-[11px] text-slate-600 dark:text-slate-300 space-y-1">
               <li className="flex items-start gap-1.5">
-                <span className="text-emerald-500 font-bold">•</span>
-                <span>98% Statutory Compliance Score</span>
+                <span className="text-amber-500 font-bold">•</span>
+                <span>Partially verified result status</span>
               </li>
               <li className="flex items-start gap-1.5">
-                <span className="text-emerald-500 font-bold">•</span>
-                <span>Section 36 Show-Cause Notice</span>
+                <span className="text-amber-500 font-bold">•</span>
+                <span>Explicit missing particulars notice</span>
               </li>
               <li className="flex items-start gap-1.5">
-                <span className="text-emerald-500 font-bold">•</span>
-                <span>Digitally signed Inspection Memo</span>
+                <span className="text-amber-500 font-bold">•</span>
+                <span>Non-presumptive officer audit file</span>
               </li>
             </ul>
           </div>
         </div>
       </div>
 
-      {/* 5. COMPETITOR COMPARISON SECTION (CHIPS VS KURKURE) */}
+      {/* 5. COMPETITOR COMPARISON SECTION (LAY'S VS KURKURE) */}
       <div className="bg-white dark:bg-slate-900 rounded-2xl p-5 sm:p-6 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-100 dark:border-slate-800">
           <div>
@@ -570,10 +848,10 @@ export const ChipsScanResult: React.FC<ChipsScanResultProps> = ({
               <span>5. Competitor Comparison</span>
             </div>
             <h3 className="text-lg font-bold text-slate-900 dark:text-white font-display">
-              Market Benchmark: {productName} vs. Kurkure
+              Market Benchmark: {brand} {productName} vs. Kurkure
             </h3>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-              Side-by-side statutory packaging declarations comparison.
+              Side-by-side statutory packaging declarations comparison under Legal Metrology standards.
             </p>
           </div>
 
@@ -589,10 +867,10 @@ export const ChipsScanResult: React.FC<ChipsScanResultProps> = ({
               <tr className="bg-slate-100 dark:bg-slate-800/80 text-slate-700 dark:text-slate-200 border-b border-slate-200 dark:border-slate-800 font-bold uppercase tracking-wider text-[11px]">
                 <th className="py-3 px-4 w-1/3">Feature</th>
                 <th className="py-3 px-4 w-1/3 text-blue-700 dark:text-blue-400 font-extrabold bg-blue-50/50 dark:bg-blue-950/20">
-                  {productName} (Current Scan)
+                  {brand} {productName} (Current Scan)
                 </th>
                 <th className="py-3 px-4 w-1/3 text-slate-700 dark:text-slate-300">
-                  Kurkure (Competitor)
+                  Kurkure (Competitor Benchmark)
                 </th>
               </tr>
             </thead>
@@ -610,7 +888,9 @@ export const ChipsScanResult: React.FC<ChipsScanResultProps> = ({
                     {row.feature}
                   </td>
                   <td className="py-3 px-4 font-bold bg-blue-50/20 dark:bg-blue-950/10 text-slate-900 dark:text-white">
-                    {row.chips}
+                    <span className={row.current === NOT_PROVIDED_TEXT ? 'text-slate-400 font-normal italic' : ''}>
+                      {row.current}
+                    </span>
                   </td>
                   <td className="py-3 px-4 text-slate-500 dark:text-slate-400 italic">
                     {row.kurkure}
@@ -622,7 +902,7 @@ export const ChipsScanResult: React.FC<ChipsScanResultProps> = ({
         </div>
 
         <p className="text-[11px] text-slate-400 dark:text-slate-500 pt-1 italic text-center">
-          Note: In accordance with standard verification rules, unverified competitor details remain unpopulated (&ldquo;Not provided&rdquo;).
+          Note: In accordance with standard verification rules, unverified competitor details remain unpopulated (&ldquo;Not provided on the uploaded label&rdquo;).
         </p>
       </div>
 
@@ -632,7 +912,7 @@ export const ChipsScanResult: React.FC<ChipsScanResultProps> = ({
           {onNavigateToAudit && (
             <button
               onClick={onNavigateToAudit}
-              className="px-4 py-2.5 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-xs font-bold transition-all shadow-xs flex items-center gap-1.5"
+              className="px-4 py-2.5 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
             >
               <span>View Active Audit Checklist</span>
               <ArrowRight className="w-3.5 h-3.5" />
@@ -641,7 +921,7 @@ export const ChipsScanResult: React.FC<ChipsScanResultProps> = ({
           {onNavigateToReport && (
             <button
               onClick={onNavigateToReport}
-              className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs flex items-center gap-1.5"
+              className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
             >
               <FileText className="w-3.5 h-3.5" />
               <span>Generate Inspection Report</span>

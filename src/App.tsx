@@ -412,7 +412,7 @@ export function App() {
       <footer className="bg-white border-t border-slate-200 py-6 text-center text-xs text-slate-500 no-print">
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
           <p>
-            <strong>LabelCheck AI</strong> &mdash; Legal Metrology (Packaged Commodities) Rules, 2011 Inspection System
+            <strong>PackSURE AI</strong> &mdash; Legal Metrology (Packaged Commodities) Rules, 2011 Inspection System
           </p>
           <p className="text-slate-400">
             Smart India Hackathon (SIH) Prototype &bull; Officer Console: <strong>GASLIGHTER</strong> &bull; Lucknow Zone

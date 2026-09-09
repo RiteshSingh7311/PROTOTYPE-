@@ -289,7 +289,7 @@ export const ReportView: React.FC<ReportViewProps> = ({
               </div>
               <div>
                 <span className="text-slate-500">Verification Engine:</span>
-                <p className="font-semibold text-blue-700">LabelGuard AI Evidence Engine v3.0</p>
+                <p className="font-semibold text-blue-700">PackSURE AI Evidence Engine v3.0</p>
               </div>
             </div>
           </div>
@@ -462,7 +462,7 @@ export const ReportView: React.FC<ReportViewProps> = ({
         {/* Statutory Legal Disclaimer */}
         <div className="pt-4 border-t border-slate-200 text-[10px] text-slate-400 leading-relaxed">
           <p>
-            <strong>Statutory Disclaimer:</strong> This digital inspection memorandum is generated via LabelGuard AI based on evidence-first OCR extraction and configurable statutory rule evaluations under the Legal Metrology (Packaged Commodities) Rules, 2011 and Food Safety &amp; Standards (Labelling and Display) Regulations, 2020. Automated findings represent technical advisory assessments. Official enforcement notices, seizures, or compounding proceedings under Section 36 of the Legal Metrology Act, 2009 require physical verification by authorized gazetted officers.
+            <strong>Statutory Disclaimer:</strong> This digital inspection memorandum is generated via PackSURE AI based on evidence-first OCR extraction and configurable statutory rule evaluations under the Legal Metrology (Packaged Commodities) Rules, 2011 and Food Safety &amp; Standards (Labelling and Display) Regulations, 2020. Automated findings represent technical advisory assessments. Official enforcement notices, seizures, or compounding proceedings under Section 36 of the Legal Metrology Act, 2009 require physical verification by authorized gazetted officers.
           </p>
         </div>
       </div>

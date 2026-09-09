@@ -352,41 +352,42 @@ export const ScannerView: React.FC<ScannerViewProps> = ({
     if (presetId === 'demo-chips-sample') {
       setIsChipsScan(true);
       setChipsScanCompleted(true);
-      setUploadProductName('Demo Chips');
-      setUploadBrand('Demo Chips');
+      setUploadProductName('Potato Chips');
+      setUploadBrand("Lay's");
       setUploadCategory('Food & Snacks');
       setUploadMrp('5');
-      setUploadMfgDate('9 December 2025');
-      setUploadExpiry('2 July 2026');
-      setUploadBatch('CHIPS-DEC25-001');
-      setUploadBarcode('10014064000345');
-      setUploadManufacturerAddress('Industrial Area, Lucknow, Uttar Pradesh, India');
-      setUploadNetQty('20 gm');
+      setUploadMfgDate('12 August 2025');
+      setUploadExpiry('12 April 2026');
+      setUploadBatch('');
+      setUploadBarcode('10014064000435');
+      setUploadManufacturerAddress('');
+      setUploadNetQty('50 g');
       setUploadFontHeightOk(true);
       setUploadIncludesTaxes(true);
-      setUploadUsp('0.25 / g');
-      setUploadCareName('Demo Foods Consumer Care');
-      setUploadCarePhone('1800-DEMO-CARE');
-      setUploadCareEmail('care@demofoods.example');
-      setUploadCareAddress('Industrial Area, Lucknow, Uttar Pradesh, India');
+      setUploadUsp('0.10 / g');
+      setUploadOrigin('India');
+      setUploadCareName("Lay's Consumer Care");
+      setUploadCarePhone('1800-123-4567');
+      setUploadCareEmail('care@lays.example');
+      setUploadCareAddress('');
       setChipsDetails({
-        productName: 'Demo Chips',
-        brand: 'Demo Chips',
+        productName: 'Potato Chips',
+        brand: "Lay's",
         mrp: '₹5',
-        netQty: '20 gm',
-        mfgDate: '9 December 2025',
-        expiry: '2 July 2026',
-        batchNumber: 'CHIPS-DEC25-001',
-        fssaiNumber: '10014064000345',
-        ingredients: 'Potato, edible vegetable oil, salt, spices and seasoning',
-        allergens: 'May contain traces of milk and other allergens',
-        manufacturer: 'Demo Foods Pvt. Ltd.',
-        address: 'Industrial Area, Lucknow, Uttar Pradesh, India',
-        customerCare: 'care@demofoods.example',
+        netQty: '50 g',
+        mfgDate: '12 August 2025',
+        expiry: '12 April 2026',
+        batchNumber: '',
+        fssaiNumber: '10014064000435',
+        ingredients: '',
+        allergens: '',
+        manufacturer: '',
+        address: '',
+        customerCare: '1800-123-4567',
+        countryOfOrigin: 'India',
         verifiedFieldKeys: [
           'productName', 'brand', 'mrp', 'netQty', 'mfgDate', 'expiry',
-          'batchNumber', 'fssaiNumber', 'ingredients', 'allergens',
-          'manufacturer', 'address', 'customerCare'
+          'customerCare', 'countryOfOrigin', 'fssaiNumber'
         ]
       });
     } else {
@@ -439,51 +440,51 @@ export const ScannerView: React.FC<ScannerViewProps> = ({
     };
     reader.readAsDataURL(file);
 
-    // Statutory values for ₹5 Demo Chips packaging:
+    // Statutory values for ₹5 Demo Potato Chips packaging:
     const demoBase: ChipsCustomDetails = {
-      productName: 'Demo Chips',
-      brand: 'Demo Chips',
+      productName: 'Potato Chips',
+      brand: "Lay's",
       mrp: '₹5',
-      netQty: '20 gm',
-      mfgDate: '9 December 2025',
-      expiry: '2 July 2026',
-      batchNumber: 'CHIPS-DEC25-001',
-      fssaiNumber: '10014064000345',
-      ingredients: 'Potato, edible vegetable oil, salt, spices and seasoning',
-      allergens: 'May contain traces of milk and other allergens',
-      manufacturer: 'Demo Foods Pvt. Ltd.',
-      address: 'Industrial Area, Lucknow, Uttar Pradesh, India',
-      customerCare: 'care@demofoods.example',
+      netQty: '50 g',
+      mfgDate: '12 August 2025',
+      expiry: '12 April 2026',
+      batchNumber: '',
+      fssaiNumber: '10014064000435',
+      ingredients: '',
+      allergens: '',
+      manufacturer: '',
+      address: '',
+      customerCare: '1800-123-4567',
+      countryOfOrigin: 'India',
       verifiedFieldKeys: [
         'productName', 'brand', 'mrp', 'netQty', 'mfgDate', 'expiry',
-        'batchNumber', 'fssaiNumber', 'ingredients', 'allergens',
-        'manufacturer', 'address', 'customerCare'
+        'customerCare', 'countryOfOrigin', 'fssaiNumber'
       ]
     };
 
     setChipsDetails(demoBase);
     setIsChipsScan(true);
-    setUploadProductName('Demo Chips');
-    setUploadBrand('Demo Chips');
+    setUploadProductName('Potato Chips');
+    setUploadBrand("Lay's");
     setUploadCategory('Food & Snacks');
     setUploadMrp('5');
-    setUploadMfgDate('9 December 2025');
-    setUploadExpiry('2 July 2026');
-    setUploadBatch('CHIPS-DEC25-001');
-    setUploadBarcode('10014064000345');
-    setUploadManufacturerAddress('Industrial Area, Lucknow, Uttar Pradesh, India');
-    setUploadNetQty('20 gm');
+    setUploadMfgDate('12 August 2025');
+    setUploadExpiry('12 April 2026');
+    setUploadBatch('');
+    setUploadBarcode('10014064000435');
+    setUploadManufacturerAddress('');
+    setUploadNetQty('50 g');
     setUploadFontHeightOk(true);
     setUploadIncludesTaxes(true);
-    setUploadUsp('0.25 / g');
+    setUploadUsp('0.10 / g');
     setUploadOrigin('India');
-    setUploadCareName('Demo Foods Consumer Care');
-    setUploadCarePhone('1800-DEMO-CARE');
-    setUploadCareEmail('care@demofoods.example');
-    setUploadCareAddress('Industrial Area, Lucknow, Uttar Pradesh, India');
-    setUploadOfficerNotes('Statutory label review completed.');
-    setProductName('Demo Chips');
-    setBrandName('Demo Chips');
+    setUploadCareName("Lay's Consumer Care");
+    setUploadCarePhone('1800-123-4567');
+    setUploadCareEmail('care@lays.example');
+    setUploadCareAddress('');
+    setUploadOfficerNotes('Partially verified / Further verification required.');
+    setProductName('Potato Chips');
+    setBrandName("Lay's");
     setUploadSelectedTemplateId('chips');
 
     // Run Optical OCR to extract actual visible text from the exact uploaded image
@@ -495,53 +496,65 @@ export const ScannerView: React.FC<ScannerViewProps> = ({
         updated.mrp = extracted.detectedMrp.startsWith('₹') ? extracted.detectedMrp : `₹${extracted.detectedMrp}`;
         setUploadMrp(extracted.detectedMrp.replace(/[^0-9.]/g, ''));
         verified.add('mrp');
+        verified.add('mrp_ocr');
       }
       if (extracted.detectedMfgDate) {
         updated.mfgDate = extracted.detectedMfgDate;
         setUploadMfgDate(extracted.detectedMfgDate);
         verified.add('mfgDate');
+        verified.add('mfgDate_ocr');
       }
       if (extracted.detectedExpiry) {
         updated.expiry = extracted.detectedExpiry;
         setUploadExpiry(extracted.detectedExpiry);
         verified.add('expiry');
+        verified.add('expiry_ocr');
       }
       if (extracted.detectedFssaiNumber) {
         updated.fssaiNumber = extracted.detectedFssaiNumber;
         setUploadFssaiNumber(extracted.detectedFssaiNumber);
         verified.add('fssaiNumber');
+        verified.add('fssaiNumber_ocr');
       }
       if (extracted.detectedNetQty) {
         updated.netQty = extracted.detectedNetQty;
         setUploadNetQty(extracted.detectedNetQty);
         verified.add('netQty');
+        verified.add('netQty_ocr');
       }
       if (extracted.detectedBatchNumber) {
         updated.batchNumber = extracted.detectedBatchNumber;
         setUploadBatch(extracted.detectedBatchNumber);
         verified.add('batchNumber');
+        verified.add('batchNumber_ocr');
       }
       if (extracted.detectedIngredients) {
         updated.ingredients = extracted.detectedIngredients;
         verified.add('ingredients');
+        verified.add('ingredients_ocr');
       }
       if (extracted.detectedAllergens) {
         updated.allergens = extracted.detectedAllergens;
         verified.add('allergens');
+        verified.add('allergens_ocr');
       }
       if (extracted.detectedManufacturer) {
         updated.manufacturer = extracted.detectedManufacturer;
         verified.add('manufacturer');
+        verified.add('manufacturer_ocr');
       }
       if (extracted.detectedAddress) {
         updated.address = extracted.detectedAddress;
         setUploadManufacturerAddress(extracted.detectedAddress);
         verified.add('address');
+        verified.add('address_ocr');
       }
-      if (extracted.detectedCareEmail) {
-        updated.customerCare = extracted.detectedCareEmail;
-        setUploadCareEmail(extracted.detectedCareEmail);
+      if (extracted.detectedCareEmail || extracted.detectedCarePhone) {
+        updated.customerCare = extracted.detectedCarePhone || extracted.detectedCareEmail;
+        if (extracted.detectedCareEmail) setUploadCareEmail(extracted.detectedCareEmail);
+        if (extracted.detectedCarePhone) setUploadCarePhone(extracted.detectedCarePhone);
         verified.add('customerCare');
+        verified.add('customerCare_ocr');
       }
 
       updated.verifiedFieldKeys = Array.from(verified);
@@ -652,19 +665,19 @@ export const ScannerView: React.FC<ScannerViewProps> = ({
   };
 
   const handleStartChipsInspection = () => {
-    const pName = chipsDetails.productName || 'Demo Chips';
-    const pBrand = chipsDetails.brand || 'Demo Chips';
+    const pName = chipsDetails.productName || 'Potato Chips';
+    const pBrand = chipsDetails.brand || "Lay's";
     const pMrp = chipsDetails.mrp || '₹5';
-    const pNetQty = chipsDetails.netQty || '20 gm';
-    const pMfg = chipsDetails.mfgDate || '9 December 2025';
-    const pExp = chipsDetails.expiry || '2 July 2026';
-    const pBatch = chipsDetails.batchNumber || 'CHIPS-DEC25-001';
-    const pFssai = chipsDetails.fssaiNumber || '10014064000345';
-    const pIngredients = chipsDetails.ingredients || 'Potato, edible vegetable oil, salt, spices and seasoning';
-    const pAllergens = chipsDetails.allergens || 'May contain traces of milk and other allergens';
-    const pMfr = chipsDetails.manufacturer || 'Demo Foods Pvt. Ltd.';
-    const pAddr = chipsDetails.address || 'Industrial Area, Lucknow, Uttar Pradesh, India';
-    const pCare = chipsDetails.customerCare || 'care@demofoods.example';
+    const pNetQty = chipsDetails.netQty || '50 g';
+    const pMfg = chipsDetails.mfgDate || '12 August 2025';
+    const pExp = chipsDetails.expiry || '12 April 2026';
+    const pBatch = chipsDetails.batchNumber || 'Not provided on the uploaded label';
+    const pFssai = chipsDetails.fssaiNumber || '10014064000435';
+    const pIngredients = chipsDetails.ingredients || 'Not provided on the uploaded label';
+    const pAllergens = chipsDetails.allergens || 'Not provided on the uploaded label';
+    const pMfr = chipsDetails.manufacturer || 'Not provided on the uploaded label';
+    const pAddr = chipsDetails.address || 'Not provided on the uploaded label';
+    const pCare = chipsDetails.customerCare || '1800-123-4567';
 
     const chipsFields: DeclarationField[] = [
       {
@@ -697,7 +710,7 @@ export const ScannerView: React.FC<ScannerViewProps> = ({
         confidence: 99,
         ruleReference: 'Rule 6(1)(c)',
         status: 'pass',
-        statusExplanation: `MRP declared as ${pMrp}.`,
+        statusExplanation: `Maximum Retail Price declared as ${pMrp}.`,
         boundingBox: { x: 50, y: 40, width: 40, height: 10 }
       },
       {
@@ -708,7 +721,7 @@ export const ScannerView: React.FC<ScannerViewProps> = ({
         confidence: 98,
         ruleReference: 'Rule 6(1)(b) & Rule 7',
         status: 'pass',
-        statusExplanation: `Net quantity declared as ${pNetQty}.`,
+        statusExplanation: `Net quantity declared as ${pNetQty} in metric units.`,
         boundingBox: { x: 10, y: 40, width: 35, height: 10 }
       },
       {
@@ -738,10 +751,10 @@ export const ScannerView: React.FC<ScannerViewProps> = ({
         key: 'batch_number',
         label: 'Batch Number',
         value: pBatch,
-        confidence: 97,
+        confidence: 0,
         ruleReference: 'Rule 6(1)(e)',
-        status: 'pass',
-        statusExplanation: `Batch number declared as ${pBatch}.`,
+        status: 'review',
+        statusExplanation: 'Batch number is not visible or declared on the uploaded label.',
         boundingBox: { x: 10, y: 65, width: 40, height: 8 }
       },
       {
@@ -749,10 +762,10 @@ export const ScannerView: React.FC<ScannerViewProps> = ({
         key: 'fssai_license',
         label: 'FSSAI License Number',
         value: pFssai,
-        confidence: 98,
+        confidence: 70,
         ruleReference: 'FSSAI (FSSR 2020)',
-        status: 'pass',
-        statusExplanation: `FSSAI license number declared as ${pFssai}.`,
+        status: 'review',
+        statusExplanation: '14-digit FSSAI license number format present. Independent portal verification required.',
         boundingBox: { x: 50, y: 65, width: 45, height: 8 }
       },
       {
@@ -760,10 +773,10 @@ export const ScannerView: React.FC<ScannerViewProps> = ({
         key: 'ingredients',
         label: 'Ingredients',
         value: pIngredients,
-        confidence: 96,
+        confidence: 0,
         ruleReference: 'FSSAI Reg. 2.2.2',
-        status: 'pass',
-        statusExplanation: `Ingredients declared: ${pIngredients}.`,
+        status: 'review',
+        statusExplanation: 'Ingredients list is not visible or declared on the uploaded label.',
         boundingBox: { x: 10, y: 75, width: 80, height: 8 }
       },
       {
@@ -771,10 +784,10 @@ export const ScannerView: React.FC<ScannerViewProps> = ({
         key: 'allergen_info',
         label: 'Allergen Information',
         value: pAllergens,
-        confidence: 95,
+        confidence: 0,
         ruleReference: 'FSSAI Allergen Mandate',
-        status: 'pass',
-        statusExplanation: `Allergen warning declared: ${pAllergens}.`,
+        status: 'review',
+        statusExplanation: 'Allergen declaration is not visible or declared on the uploaded label.',
         boundingBox: { x: 10, y: 82, width: 80, height: 6 }
       },
       {
@@ -782,10 +795,10 @@ export const ScannerView: React.FC<ScannerViewProps> = ({
         key: 'manufacturer_details',
         label: 'Manufacturer / Packer',
         value: pMfr,
-        confidence: 98,
+        confidence: 0,
         ruleReference: 'Rule 6(1)(a)',
-        status: 'pass',
-        statusExplanation: `Manufacturer declared as ${pMfr}.`,
+        status: 'review',
+        statusExplanation: 'Manufacturer / Packer details are not visible or declared on the uploaded label.',
         boundingBox: { x: 10, y: 88, width: 40, height: 6 }
       },
       {
@@ -793,10 +806,10 @@ export const ScannerView: React.FC<ScannerViewProps> = ({
         key: 'manufacturer_address',
         label: 'Manufacturer / Office Address',
         value: pAddr,
-        confidence: 98,
+        confidence: 0,
         ruleReference: 'Rule 6(1)(a)',
-        status: 'pass',
-        statusExplanation: `Registered address declared: ${pAddr}.`,
+        status: 'review',
+        statusExplanation: 'Manufacturer / Office address is not visible or declared on the uploaded label.',
         boundingBox: { x: 10, y: 92, width: 80, height: 6 }
       },
       {
@@ -804,10 +817,10 @@ export const ScannerView: React.FC<ScannerViewProps> = ({
         key: 'customer_care',
         label: 'Customer Care Details',
         value: pCare,
-        confidence: 98,
+        confidence: 70,
         ruleReference: 'Rule 6(1)(f)',
-        status: 'pass',
-        statusExplanation: `Customer care declared: ${pCare}.`,
+        status: 'review',
+        statusExplanation: 'Customer care contact provided. Verification against official brand records required.',
         boundingBox: { x: 10, y: 96, width: 80, height: 6 }
       }
     ];
@@ -819,7 +832,7 @@ export const ScannerView: React.FC<ScannerViewProps> = ({
         title: 'Maximum Retail Price (MRP) Declaration',
         legalSection: 'Section 36(1) of Legal Metrology Act, 2009',
         status: 'pass',
-        explanation: `MRP declared clearly as ${pMrp} inclusive of all taxes.`,
+        explanation: `MRP declared as ${pMrp}.`,
         detectedText: pMrp
       },
       {
@@ -828,7 +841,7 @@ export const ScannerView: React.FC<ScannerViewProps> = ({
         title: 'Net Quantity Declaration',
         legalSection: 'Section 36(1) of Legal Metrology Act, 2009',
         status: 'pass',
-        explanation: `Net quantity declared as ${pNetQty} in metric units.`,
+        explanation: `Net quantity declared as ${pNetQty}.`,
         detectedText: pNetQty
       },
       {
@@ -845,8 +858,8 @@ export const ScannerView: React.FC<ScannerViewProps> = ({
         ruleCode: 'Rule 6(1)(e)',
         title: 'Batch or Lot Number',
         legalSection: 'Section 36(1) of Legal Metrology Act, 2009',
-        status: 'pass',
-        explanation: `Batch number declared as ${pBatch}.`,
+        status: 'review',
+        explanation: 'Batch number is not visible or declared on the uploaded label.',
         detectedText: pBatch
       },
       {
@@ -854,8 +867,8 @@ export const ScannerView: React.FC<ScannerViewProps> = ({
         ruleCode: 'Rule 6(1)(a)',
         title: 'Manufacturer / Packer Identity & Address',
         legalSection: 'Section 36(1) of Legal Metrology Act, 2009',
-        status: 'pass',
-        explanation: `Declared: ${pMfr}, ${pAddr}.`,
+        status: 'review',
+        explanation: 'Manufacturer details and address are not visible on the uploaded label.',
         detectedText: `${pMfr}, ${pAddr}`
       },
       {
@@ -863,8 +876,8 @@ export const ScannerView: React.FC<ScannerViewProps> = ({
         ruleCode: 'Rule 6(1)(f)',
         title: 'Consumer Care Electronic & Postal Contact',
         legalSection: 'Section 36(1) of Legal Metrology Act, 2009',
-        status: 'pass',
-        explanation: `Consumer care details declared: ${pCare}.`,
+        status: 'review',
+        explanation: 'Customer care contact provided. Independent verification required.',
         detectedText: pCare
       }
     ];
@@ -889,14 +902,14 @@ export const ScannerView: React.FC<ScannerViewProps> = ({
         detectedProductName: pName,
         detectedBatchNumber: pBatch,
         detectedManufacturer: pMfr,
-        matchConfidence: 96,
+        matchConfidence: 85,
         isIdentityConfirmed: true,
         confirmationStatus: 'confirmed'
       },
-      complianceScore: 98,
-      overallStatus: 'Compliant',
-      officerNotes: 'Statutory compliance verification and label inspection completed.',
-      isVerified: true
+      complianceScore: 65,
+      overallStatus: 'Needs manual verification',
+      officerNotes: 'Partially verified / Further verification required. Missing declarations: batch number, ingredients, allergens, manufacturer details, and office address.',
+      isVerified: false
     };
 
     onScanComplete(chipsRecord);
@@ -2034,7 +2047,7 @@ export const ScannerView: React.FC<ScannerViewProps> = ({
 
               {/* Right 5 Cols: Exact Optic Parameters Card + Big Scan Trigger */}
               <div className="lg:col-span-5 space-y-4">
-                {/* OPTIC PARAMETERS CARD (Themed Harmoniously to LabelCheck AI Portal) */}
+                {/* OPTIC PARAMETERS CARD (Themed Harmoniously to PackSURE AI Portal) */}
                 <div className="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/90 shadow-sm space-y-5">
                   {/* Title & Live Sync */}
                   <div className="flex items-center justify-between pb-2 border-b border-slate-100">

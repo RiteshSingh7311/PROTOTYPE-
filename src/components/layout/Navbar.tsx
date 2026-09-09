@@ -114,13 +114,13 @@ export const Navbar: React.FC<NavbarProps> = ({
               <SihLogo />
             </div>
 
-            {/* Theme Switcher Button directly beside SIH logo */}
+            {/* Light / Dark Mode Toggle Button */}
             {onToggleTheme && (
               <button
                 onClick={onToggleTheme}
-                className="p-1.5 sm:p-2 rounded-xl border border-slate-200 hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800 text-slate-700 dark:text-amber-400 transition-all flex items-center justify-center shadow-2xs group shrink-0"
-                title={theme === 'dark' ? 'Switch to Light Theme' : 'Switch to Dark Theme'}
-                aria-label="Toggle Theme"
+                title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`}
+                className="w-8 h-8 rounded-lg flex items-center justify-center bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 transition-all border border-slate-200 shrink-0 group cursor-pointer"
+                aria-label="Toggle theme mode"
               >
                 {theme === 'dark' ? (
                   <Sun className="w-4 h-4 text-amber-400 group-hover:rotate-45 transition-transform" />
@@ -133,7 +133,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             {/* Subtle Divider */}
             <div className="h-6 w-[1px] bg-slate-200 shrink-0 hidden sm:block"></div>
 
-            {/* LabelCheck AI Brand */}
+            {/* PackSURE AI Brand */}
             <div 
               className="flex items-center gap-1.5 sm:gap-2 cursor-pointer group shrink-0"
               onClick={() => handleTabClick('dashboard')}
@@ -144,7 +144,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               <div className="hidden sm:block">
                 <div className="flex items-center gap-1.5">
                   <span className="font-black text-base sm:text-lg tracking-tight text-slate-900 font-display">
-                    Label<span className="text-blue-600">Check</span>
+                    Pack<span className="text-blue-600">SURE</span>
                   </span>
                   <span className="text-[9px] font-bold bg-blue-50 text-blue-700 px-1 py-0.2 rounded border border-blue-200">
                     AI
