@@ -203,6 +203,59 @@ export const DEMO_LABELS = {
       <!-- OCR Status Note -->
       <text x="300" y="710" fill="#94A3B8" font-size="11" text-anchor="middle">OCR Vision Confidence: 24% &bull; Multi-signal match: 0/5</text>
     </svg>
+  `)}`,
+
+  chipsPacket: `data:image/svg+xml;utf8,${encodeURIComponent(`
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 800" width="600" height="800" style="background:#0F172A; font-family:'Segoe UI',Roboto,sans-serif;">
+      <!-- Snack Pouch Outline -->
+      <path d="M 80 50 Q 300 25 520 50 L 550 730 Q 300 760 50 730 Z" fill="#DC2626" stroke="#EF4444" stroke-width="6"/>
+      <line x1="80" y1="50" x2="520" y2="50" stroke="#7F1D1D" stroke-width="10" stroke-dasharray="8 6"/>
+      <line x1="50" y1="730" x2="550" y2="730" stroke="#7F1D1D" stroke-width="10" stroke-dasharray="8 6"/>
+
+      <!-- Center Starburst Banner -->
+      <polygon points="300,100 370,170 470,160 490,250 570,300 520,380 560,470 470,510 440,600 350,580 300,650 250,580 160,600 130,510 40,470 80,380 30,300 110,250 130,160 230,170" fill="#FACC15" opacity="0.95"/>
+      <polygon points="300,120 360,180 440,170 460,250 530,290 490,360 520,440 440,480 410,550 340,540 300,600 260,540 190,550 160,480 80,440 110,360 70,290 140,250 160,170 240,180" fill="#EA580C"/>
+
+      <!-- Brand Title -->
+      <text x="300" y="270" fill="#FEF08A" font-size="20" font-weight="900" text-anchor="middle" letter-spacing="4">CRUNCHY &amp; CRISPY</text>
+      <text x="300" y="340" fill="#FFFFFF" font-size="64" font-weight="black" text-anchor="middle" letter-spacing="2" filter="drop-shadow(3px 5px 2px rgba(0,0,0,0.6))">CHIPS</text>
+      <text x="300" y="380" fill="#FEF9C3" font-size="18" font-weight="bold" text-anchor="middle">POTATO SNACK MIX</text>
+
+      <!-- Declared Price Tag Badge -->
+      <circle cx="470" cy="200" r="50" fill="#15803D" stroke="#FFFFFF" stroke-width="3"/>
+      <text x="470" y="195" fill="#DCFCE7" font-size="13" font-weight="bold" text-anchor="middle">ONLY</text>
+      <text x="470" y="222" fill="#FFFFFF" font-size="28" font-weight="black" text-anchor="middle">&#8377;5</text>
+
+      <!-- Principal Display Declarations Box -->
+      <rect x="90" y="470" width="420" height="210" rx="12" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="2"/>
+
+      <!-- Product Name -->
+      <text x="110" y="505" fill="#475569" font-size="11" font-weight="bold">PRODUCT:</text>
+      <text x="180" y="505" fill="#0F172A" font-size="14" font-weight="extrabold">Demo Chips</text>
+
+      <!-- Net Weight & MRP Declaration -->
+      <text x="110" y="535" fill="#475569" font-size="11" font-weight="bold">NET WEIGHT:</text>
+      <text x="200" y="535" fill="#0F172A" font-size="13" font-weight="bold">20 gm</text>
+      <text x="310" y="535" fill="#475569" font-size="11" font-weight="bold">MRP:</text>
+      <text x="350" y="535" fill="#15803D" font-size="15" font-weight="black">&#8377;5</text>
+
+      <!-- Manufacturing Date & Best Before -->
+      <text x="110" y="565" fill="#475569" font-size="11" font-weight="bold">MFG DATE:</text>
+      <text x="180" y="565" fill="#0F172A" font-size="13" font-weight="bold">9 December 2025</text>
+      <text x="310" y="565" fill="#475569" font-size="11" font-weight="bold">EXPIRY:</text>
+      <text x="370" y="565" fill="#B45309" font-size="13" font-weight="bold">2 July 2026</text>
+
+      <!-- Batch & FSSAI Lic -->
+      <text x="110" y="595" fill="#475569" font-size="11" font-weight="bold">BATCH:</text>
+      <text x="170" y="595" fill="#0F172A" font-size="12" font-weight="bold">CHIPS-DEC25-001</text>
+      <text x="310" y="595" fill="#475569" font-size="11" font-weight="bold">FSSAI LIC:</text>
+      <text x="380" y="595" fill="#1E40AF" font-size="12" font-weight="bold">10014064000345</text>
+
+      <!-- Manufacturer info -->
+      <rect x="110" y="618" width="380" height="45" rx="6" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="1"/>
+      <text x="120" y="636" fill="#334155" font-size="10" font-weight="bold">MFR: Demo Foods Pvt. Ltd., Industrial Area, Lucknow</text>
+      <text x="120" y="650" fill="#334155" font-size="10">Ingredients: Potato, edible vegetable oil, salt, spices and seasoning</text>
+    </svg>
   `)}`
 };
 

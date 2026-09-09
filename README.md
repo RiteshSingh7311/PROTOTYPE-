@@ -25,63 +25,168 @@ Current prototype scanners often **hallucinate** or **guess** company names, pro
 
 ---
 
-## 🔄 End-to-End System Workflow
+## 🔄 System Architecture & Workflow Charts
 
+### 1. High-Level End-to-End Inspection Pipeline
 ```mermaid
 flowchart TD
-    A["📸 Upload Commodity Packaging Photo"] --> B["Stage 1: Multi-Signal Optical Extraction (OCR)"]
+    A["📸 Upload / Live Capture Commodity Packaging"] --> B["Stage 1: Multi-Signal Optical Extraction (OCR)"]
     
-    subgraph S1 ["Stage 1: Evidence Extraction"]
-        B --> B1["Extract Brand Name"]
-        B --> B2["Extract Commodity / Generic Name"]
-        B --> B3["Extract Barcode / GTIN (EAN-13)"]
-        B --> B4["Extract MRP & Net Quantity"]
-        B --> B5["Extract Packer Postal Address & PIN"]
+    subgraph S1 ["Stage 1: Optical Acquisition & Preprocessing"]
+        B --> B1["Perspective Rectification & D65 Calibration"]
+        B --> B2["Multi-Spectrum Text Extraction"]
+        B --> B3["Extract 13 Statutory Declarations"]
     end
 
-    S1 --> C["Stage 2: Online Registry Cross-Check (IProductVerificationService)"]
+    S1 --> C["Stage 2: Online Registry Cross-Check (GS1 / FoSCoS / Catalog)"]
     
-    subgraph S2 ["Stage 2 & 3: Verification & Conflict Detection"]
-        C --> D{"Confidence & Signals Evaluation"}
-        D -->|Confident Multi-Signal Match| E["Matched Registry Source (e.g., GS1 DataKart)"]
-        D -->|Uncertain / Missing Signals| F["Flag: 'Product identity not confirmed'"]
-        E --> G["Compare Label vs Registry Values"]
+    subgraph S2 ["Stage 2 & 3: Multi-Signal Corroboration & Discrepancy Detection"]
+        C --> D{"Confidence & Signal Verification"}
+        D -->|Confident Multi-Signal Match| E["Matched Registry Source (e.g. GS1 DataKart)"]
+        D -->|Uncertain / Torn Packaging| F["Flag: 'Product identity not confirmed'"]
+        E --> G["Compare Physical Label vs Catalog Values"]
         G -->|Values Differ e.g. ₹120 vs ₹110| H["Generate Conflicting Information Alert"]
-        G -->|Values Corroborate| I["Verified from Source"]
+        G -->|Values Corroborate| I["Mark: Verified from Source"]
     end
 
-    S2 --> J["Stage 4: Product Identity Confirmation Gate (Modal)"]
+    S2 --> J["Stage 4: Officer Identity Confirmation Gate"]
     
-    subgraph S3 ["Stage 4: Officer Confirmation"]
+    subgraph S3 ["Stage 4: Inspector Confirmation Gate"]
         J --> K1["Option A: Confirm Product & Proceed"]
-        J --> K2["Option B: Inline Edit Details"]
-        J --> K3["Option C: Search Again"]
-        J --> K4["Option D: Continue Without Online Verification"]
-        K4 --> L["Mark: 'Identity not confirmed — manual verification required'"]
+        J --> K2["Option B: Inline Manual Edit"]
+        J --> K3["Option C: Search Alternate Registries"]
+        J --> K4["Option D: Continue Without Online Match"]
     end
 
-    S3 --> M["Stage 5: Category-Aware Statutory Rule Engine"]
+    S3 --> M["Stage 5: Dual Statutory Compliance Engine"]
     
     subgraph S4 ["Stage 5: Statutory Compliance Engine"]
         M --> N1["Legal Metrology (PCR 2011) Engine"]
-        N1 --> N1a["Rule 6: Mandatory Declarations"]
-        N1 --> N1b["Rule 7 / Sch. II: Numeral Height"]
-        N1 --> N1c["Rule 11: Unit Sale Price (USP)"]
+        N1 --> N1a["Rule 6(1): Mandatory Declarations (Name, Addr, Qty, MRP, Mfg)"]
+        N1 --> N1b["Rule 7 & Sch. II: Minimum Numeral Height Check"]
+        N1 --> N1c["Rule 11: Unit Sale Price (USP) Calculation"]
         
         M --> N2{"Commodity Classification"}
-        N2 -->|Packaged Food Product| O1["Active FSSAI 2020 Module (8 Food Declarations)"]
-        N2 -->|Non-Food Commodity| O2["FSSAI Module Exempted (Cosmetics / Electronics)"]
+        N2 -->|Packaged Food Product| O1["Active FSSAI 2020 Engine (14-Digit Lic, Allergens, Shelf Life)"]
+        N2 -->|Non-Food Commodity| O2["FSSAI Module Exempted (Cosmetics / Electronics / Chemicals)"]
     end
 
-    S4 --> P["Stage 6: Honest Audit Determination & Statutory Documents"]
+    S4 --> P["Stage 6: Determination & Statutory Document Generation"]
     
-    subgraph S5 ["Stage 6: Output & Enforcement Action"]
-        P --> Q1["Section A (Label Ground Truth) vs Section B (Registry)"]
-        P --> Q2["Official Certificate of Statutory Compliance (PDF/QR)"]
-        P --> Q3["Section 36 Legal Metrology Show-Cause Notice (PDF/Print)"]
-        P --> Q4["Digital Inspection Memorandum (Legal PDF)"]
+    subgraph S5 ["Stage 6: Legal Action & Reporting"]
+        P --> Q1["Side-by-Side Physical Ground Truth vs Catalog Corroboration"]
+        P --> Q2["Official Certificate of Compliance with SHA-256 Signature & QR"]
+        P --> Q3["Section 36 Legal Metrology Act Show-Cause Notice (PDF)"]
+        P --> Q4["Statutory Inspection Memorandum for Judicial Submission"]
     end
 ```
+
+---
+
+### 2. Optical OCR & 13-Field Extraction Pipeline
+```mermaid
+flowchart LR
+    IMG["🖼️ Raw Packaging Image"] --> PRE["⚙️ Pre-Processing Engine\n• Grayscale conversion\n• Adaptive thresholding\n• Perspective de-skew"]
+    PRE --> OCR["👁️ Multi-Layer OCR\n• Tesseract / WebAssembly\n• Character bounding boxes\n• Word confidence scoring"]
+    
+    OCR --> REGEX["🔍 Statutory Regex Parser"]
+    
+    subgraph EXT ["Extracted 13 Particulars"]
+        REGEX --> F1["1. Product Name"]
+        REGEX --> F2["2. Brand"]
+        REGEX --> F3["3. MRP / Price (₹)"]
+        REGEX --> F4["4. Net Quantity (g/kg/ml)"]
+        REGEX --> F5["5. Mfg Date"]
+        REGEX --> F6["6. Best Before / Expiry"]
+        REGEX --> F7["7. Batch Number"]
+        REGEX --> F8["8. FSSAI License (14 Digits)"]
+        REGEX --> F9["9. Ingredients List"]
+        REGEX --> F10["10. Allergen Statement"]
+        REGEX --> F11["11. Manufacturer / Packer"]
+        REGEX --> F12["12. Facility Address & PIN"]
+        REGEX --> F13["13. Customer Care Email/Phone"]
+    end
+
+    EXT --> NORM["📐 Normalization Engine\n• Metric conversion\n• Date standardization\n• Numeral height checks"]
+```
+
+---
+
+### 3. Dual Regulatory Decision Engine (PCR 2011 vs FSSAI 2020)
+```mermaid
+flowchart TD
+    INPUT["📥 Normalized Product Declarations"] --> CHECK_METRO["⚖️ Legal Metrology (PCR 2011) Engine"]
+    INPUT --> CAT{"🏷️ Category Check"}
+    
+    subgraph LM ["Legal Metrology Validation"]
+        CHECK_METRO --> R6A{"Rule 6(1)(a):\nManufacturer Address?"}
+        R6A -->|Complete with PIN| P1["Pass (+10)"]
+        R6A -->|Missing PIN / Incomplete| F1["Violation Flag"]
+        
+        CHECK_METRO --> R6B{"Rule 6(1)(b) & Rule 7:\nNet Qty & Font Height?"}
+        R6B -->|Standard Units & Height OK| P2["Pass (+15)"]
+        R6B -->|Non-standard / Too Small| F2["Violation Flag"]
+
+        CHECK_METRO --> R6C{"Rule 6(1)(c):\nMRP 'incl. of all taxes'?"}
+        R6C -->|Proper Format| P3["Pass (+15)"]
+        R6C -->|Missing Tax Disclaimer| F3["Violation Flag"]
+
+        CHECK_METRO --> R6D{"Rule 6(1)(d):\nMfg / Packing Date?"}
+        R6D -->|Valid Month & Year| P4["Pass (+10)"]
+        R6D -->|Omitted| F4["Violation Flag"]
+
+        CHECK_METRO --> R11{"Rule 11:\nUnit Sale Price (USP)?"}
+        R11 -->|Declared in ₹/g or ₹/ml| P5["Pass (+10)"]
+        R11 -->|Missing USP| F5["Violation Flag"]
+    end
+
+    CAT -->|Food & Beverage| FSSAI["🥗 FSSAI Regulations, 2020 Engine"]
+    CAT -->|Cosmetics / Electronics / General| EXEMPT["🛡️ Mark FSSAI: Exempted"]
+
+    subgraph FS ["FSSAI Food Safety Validation"]
+        FSSAI --> FS1{"14-Digit FSSAI Lic No?"}
+        FS1 -->|Valid 14 Digits & FoSCoS Match| FP1["Pass (+15)"]
+        FS1 -->|Invalid Length or Fake| FF1["Non-Compliant"]
+
+        FSSAI --> FS2{"Ingredients & Allergens?"}
+        FS2 -->|Descending Order + Allergen Alert| FP2["Pass (+10)"]
+        FS2 -->|Missing Declaration| FF2["Non-Compliant"]
+
+        FSSAI --> FS3{"Date Marking & Shelf Life?"}
+        FS3 -->|Expiry / Best Before Present| FP3["Pass (+15)"]
+        FS3 -->|Expired or Missing| FF3["Critical Safety Violation"]
+    end
+
+    LM --> AGG["📊 Scoring & Compliance Aggregator"]
+    FS --> AGG
+    EXEMPT --> AGG
+    
+    AGG --> FINAL{"Total Score"}
+    FINAL -->|Score ≥ 90%| STAT_PASS["✅ Compliant — Certificate Issued"]
+    FINAL -->|Score 60-89%| STAT_WARN["⚠️ Potential Minor Violations"]
+    FINAL -->|Score < 60%| STAT_FAIL["🚨 Non-Compliant — Section 36 Notice Generated"]
+```
+
+---
+
+### 4. Enforcement & Show-Cause Notice Generation Workflow
+```mermaid
+flowchart TD
+    SCORE["⚖️ Compliance Engine Assessment"] --> DECISION{"Any Statutory Violations?"}
+    
+    DECISION -->|All Mandatory Rules Satisfied| CERT["📜 Generate Certificate of Compliance\n• Unique Certificate ID\n• SHA-256 Digital Verification Hash\n• Embedded Inspection QR Code"]
+    
+    DECISION -->|Rule Violations Detected| NOTICE["🚨 Automated Section 36 Notice Engine"]
+    
+    subgraph SC ["Show-Cause Notice Generation"]
+        NOTICE --> N1["Extract Statutory Offenses\n(e.g., Rule 6(1)(a) No PIN, Rule 6(1)(c) No Taxes Declared)"]
+        NOTICE --> N2["Map to Section 36(1) of Legal Metrology Act, 2009"]
+        NOTICE --> N3["Calculate Compounding Fee / Fine Bracket"]
+        NOTICE --> N4["Generate Legal Show-Cause Summons PDF"]
+    end
+
+    CERT --> ARCHIVE["📁 Departmental Digital Inspection Archive"]
+    SC --> ARCHIVE
 
 ---
 

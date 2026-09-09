@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { InspectionRecord, RuleResult, DeclarationStatus } from '../../types';
 import { CertificateModal } from '../common/CertificateModal';
+import { ChipsScanResult } from '../scanner/ChipsScanResult';
 
 interface ComplianceChecklistViewProps {
   inspection: InspectionRecord;
@@ -72,8 +73,22 @@ export const ComplianceChecklistView: React.FC<ComplianceChecklistViewProps> = (
     inspection.overallStatus === 'Product identity not confirmed' ||
     (Boolean(inspection.identityEvidence) && (inspection.identityEvidence?.matchConfidence ?? 100) < 50 && !inspection.isIdentityConfirmed);
 
+  const isChipsProduct = 
+    inspection.productName.toLowerCase().includes('chips') || 
+    inspection.brand.toLowerCase().includes('chips');
+
   return (
     <div className="max-w-6xl mx-auto space-y-6 pb-16">
+      {/* SIH 2026 Chips Inspection Result Card (Upload Photo Demo) */}
+      {isChipsProduct && (
+        <div className="mb-6">
+          <ChipsScanResult
+            uploadedImage={inspection.labelImage}
+            onNavigateToReport={onNavigateToReport}
+          />
+        </div>
+      )}
+
       {/* 1. Product Identity Confirmation Status Banner */}
       {isIdentityUncertain ? (
         <div className="bg-amber-500/10 border-2 border-amber-500/30 rounded-2xl p-5 shadow-sm">
