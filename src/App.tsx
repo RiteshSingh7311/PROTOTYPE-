@@ -18,6 +18,7 @@ import { InspectionRecord, ConsumerComplaint, ComplaintStatus, CommunityPost, Co
 import { INITIAL_INSPECTIONS, DEMO_PRESETS } from './data/mockData';
 import { INITIAL_COMPLAINTS } from './data/complaintsData';
 import { INITIAL_COMMUNITY_POSTS } from './data/communityData';
+import { supabaseService } from './services/supabaseService';
 
 export function App() {
   const [activeTab, setActiveTab] = useState<string>('dashboard');
@@ -104,6 +105,38 @@ export function App() {
     setTheme(prev => (prev === 'light' ? 'dark' : 'light'));
   };
 
+  // Supabase Cloud Connection State
+  const [supabaseConnected, setSupabaseConnected] = useState<boolean>(false);
+
+  // Check Supabase Cloud connectivity & hydrate tables on mount
+  useEffect(() => {
+    if (supabaseService.isConfigured) {
+      supabaseService.testConnection().then(res => {
+        if (res.ok) {
+          setSupabaseConnected(true);
+          // Hydrate inspections from Supabase
+          supabaseService.getInspections().then(remoteInspections => {
+            if (remoteInspections && remoteInspections.length > 0) {
+              setInspections(remoteInspections);
+            }
+          });
+          // Hydrate complaints from Supabase
+          supabaseService.getComplaints().then(remoteComplaints => {
+            if (remoteComplaints && remoteComplaints.length > 0) {
+              setComplaints(remoteComplaints);
+            }
+          });
+          // Hydrate community posts from Supabase
+          supabaseService.getCommunityPosts().then(remotePosts => {
+            if (remotePosts && remotePosts.length > 0) {
+              setCommunityPosts(remotePosts);
+            }
+          });
+        }
+      });
+    }
+  }, []);
+
   // Sync to localStorage
   useEffect(() => {
     localStorage.setItem('labelcheck_inspections', JSON.stringify(inspections));
@@ -126,6 +159,9 @@ export function App() {
     setInspections(prev => [newInspection, ...prev]);
     setCurrentInspection(newInspection);
     setSelectedFieldId(newInspection.fields[0]?.id);
+
+    // Sync scan to Supabase Cloud
+    supabaseService.saveInspection(newInspection);
 
     // If fully compliant, launch celebratory confetti
     if (newInspection.overallStatus === 'Compliant') {
@@ -166,6 +202,7 @@ export function App() {
 
     setCurrentInspection(updatedInspection);
     setInspections(prev => prev.map(item => item.id === updatedInspection.id ? updatedInspection : item));
+    supabaseService.saveInspection(updatedInspection);
   };
 
   // Handle officer verification sign-off
@@ -181,11 +218,13 @@ export function App() {
 
     setCurrentInspection(updatedInspection);
     setInspections(prev => prev.map(item => item.id === updatedInspection.id ? updatedInspection : item));
+    supabaseService.saveInspection(updatedInspection);
   };
 
   // Complaint handlers
   const handleAddComplaint = (newComplaint: ConsumerComplaint) => {
     setComplaints(prev => [newComplaint, ...prev]);
+    supabaseService.saveComplaint(newComplaint);
   };
 
   const handleUpdateComplaintStatus = (id: string, status: ComplaintStatus, notes?: string) => {
@@ -199,6 +238,7 @@ export function App() {
       }
       return c;
     }));
+    supabaseService.updateComplaintStatus(id, status, notes);
   };
 
   const handleLaunchInspectionForProduct = (productName: string, brand: string, category: string) => {
@@ -209,16 +249,19 @@ export function App() {
   // Community action handlers
   const handleAddCommunityPost = (newPost: CommunityPost) => {
     setCommunityPosts(prev => [newPost, ...prev]);
+    supabaseService.saveCommunityPost(newPost);
   };
 
   const handleToggleCommunityUpvote = (postId: string) => {
     setCommunityPosts(prev => prev.map(p => {
       if (p.id === postId) {
         const hasUpvoted = !p.hasUpvoted;
+        const upvotes = hasUpvoted ? p.upvotes + 1 : p.upvotes - 1;
+        supabaseService.updatePostUpvotes(postId, upvotes);
         return {
           ...p,
           hasUpvoted,
-          upvotes: hasUpvoted ? p.upvotes + 1 : p.upvotes - 1
+          upvotes
         };
       }
       return p;
@@ -275,6 +318,7 @@ export function App() {
         currentUser={currentUser}
         theme={theme}
         onToggleTheme={toggleTheme}
+        supabaseConnected={supabaseConnected}
       />
 
       {/* Main Content Area */}

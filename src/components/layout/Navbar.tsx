@@ -32,6 +32,7 @@ interface NavbarProps {
   };
   theme?: 'light' | 'dark';
   onToggleTheme?: () => void;
+  supabaseConnected?: boolean;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -42,7 +43,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   communityCount = 0,
   currentUser,
   theme = 'light',
-  onToggleTheme
+  onToggleTheme,
+  supabaseConnected = false
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -296,6 +298,17 @@ export const Navbar: React.FC<NavbarProps> = ({
 
           {/* Right Action Group */}
           <div className="flex items-center gap-2 shrink-0">
+            {/* Supabase Cloud Live Sync Badge */}
+            {supabaseConnected && (
+              <div 
+                title="Connected to Supabase Cloud Database (krsdrusvmugbbfluqmlu)"
+                className="hidden md:flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[11px] font-bold border border-emerald-200 bg-emerald-50/80 text-emerald-800 shrink-0"
+              >
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span className="font-mono text-[10px] tracking-wide">Supabase Cloud</span>
+              </div>
+            )}
+
             {/* Quick Scan CTA Button */}
             <button
               onClick={() => handleTabClick('scanner')}
